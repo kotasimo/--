@@ -1496,6 +1496,11 @@ textarea:focus {
     position: static;
     width: auto;
     height: auto;
+    padding-top: 14px;
+  }
+
+  .sidebar .title {
+    display: none;
   }
 
   .workspace {
