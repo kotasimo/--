@@ -116,7 +116,7 @@ export function ConsultationPanel({ ownerType, ownerId, subject, defaultTitle })
         title: defaultTitle || "相談ログ",
         content: content.trim(),
       });
-      setLogs((current) => [saved, ...current]);
+      setLogs((current) => [...current, saved]);
       setContent("");
       setState("");
     } catch (error) {

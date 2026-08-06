@@ -22,7 +22,7 @@ export async function listConsultationLogs(ownerType, ownerId) {
   if (!isSupabaseConfigured) {
     return readLocalLogs()
       .filter((item) => item.owner_type === ownerType && item.owner_id === ownerId)
-      .sort((a, b) => String(b.created_at || "").localeCompare(String(a.created_at || "")));
+      .sort((a, b) => String(a.created_at || "").localeCompare(String(b.created_at || "")));
   }
 
   const { data, error } = await supabase
@@ -30,7 +30,7 @@ export async function listConsultationLogs(ownerType, ownerId) {
     .select("*")
     .eq("owner_type", ownerType)
     .eq("owner_id", ownerId)
-    .order("created_at", { ascending: false });
+    .order("created_at", { ascending: true });
 
   if (error) throw error;
   return data || [];
@@ -49,7 +49,7 @@ export async function addConsultationLog({ ownerType, ownerId, subject, title, c
 
   if (!isSupabaseConfigured) {
     const items = readLocalLogs();
-    writeLocalLogs([item, ...items]);
+    writeLocalLogs([...items, item]);
     return item;
   }
 

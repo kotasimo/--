@@ -16,6 +16,7 @@ npm run dev
 - `src/components`: 画面部品
 - `src/data`: 科目、年度、表項目などの固定データ
 - `src/services`: メモや表データの保存処理
+- `docs/開発方針.md`: アプリの方針、Codexとの運用、次やること
 - `supabase/schema.sql`: Supabaseに貼るDB/Storage作成SQL
 - `public/problems`: 問題画像
 - `public/answers`: 手書き解答画像

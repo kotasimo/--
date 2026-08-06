@@ -579,7 +579,10 @@ h2 {
   display: grid;
   align-content: start;
   gap: 4px;
+  align-self: start;
+  max-height: calc(100vh - 32px);
   min-width: 0;
+  overflow-y: auto;
 }
 
 .modal-question-index a {
@@ -1068,6 +1071,7 @@ textarea:focus {
   align-items: start;
   column-gap: 48px;
   row-gap: 16px;
+  min-height: calc(100vh - 140px);
   border-bottom: 1px solid var(--line);
   background:
     linear-gradient(var(--line), var(--line)) 192px 0 / 1px 100% no-repeat,
@@ -1078,10 +1082,13 @@ textarea:focus {
 
 .question-index {
   position: sticky;
-  top: 10px;
+  top: 12px;
+  align-self: start;
+  max-height: calc(100vh - 24px);
   min-width: 0;
   padding-top: 6px;
   padding-right: 14px;
+  overflow-y: auto;
 }
 
 .question-index-list {
@@ -1637,6 +1644,8 @@ textarea:focus {
 
   .question-index {
     position: static;
+    max-height: none;
+    overflow: visible;
   }
 
   .consultation-list {
@@ -1669,6 +1678,8 @@ textarea:focus {
 
   .modal-question-index {
     position: static;
+    max-height: none;
+    overflow: visible;
   }
 
   .modal-chat-list {
