@@ -3,6 +3,8 @@ dist/
 .env
 .env.local
 npm-debug.log*
+.codex-consultation-log.md
+.codex-consultation-log.json
 work/basic_04_24.pdf
 work/basic_pdf_pages.txt
 work/basic_render/

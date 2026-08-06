@@ -7,6 +7,21 @@ import "katex/dist/katex.min.css";
 import { addConsultationLog, listConsultationLogs } from "../services/consultationRepository.js";
 
 export function parseChatContent(content) {
+  try {
+    const parsed = JSON.parse(content);
+    if (Array.isArray(parsed)) {
+      const messages = parsed
+        .filter((message) => message && typeof message.text === "string")
+        .map((message) => ({
+          role: message.role === "user" || message.role === "assistant" ? message.role : "note",
+          text: message.text,
+        }));
+      if (messages.length > 0) return messages;
+    }
+  } catch {
+    // Older logs are plain text and are parsed below.
+  }
+
   const lines = content.split(/\r?\n/);
   const messages = [];
   let current = null;
