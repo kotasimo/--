@@ -11,8 +11,7 @@ export const subjects = {
 };
 
 export const tableColumns = [
-  { key: "score", label: "正答率", type: "text" },
-  { key: "formula", label: "必要な公式", type: "text" },
+  { key: "score", label: "記録", type: "text" },
 ];
 
 export function problemImagePath(subjectKey, year) {

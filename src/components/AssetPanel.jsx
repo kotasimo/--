@@ -4,10 +4,11 @@ import { isSupabaseConfigured } from "../services/supabaseClient.js";
 
 const assetTypes = ["問題", "解答", "メモ", "参考"];
 
-export function AssetPanel({ ownerType, ownerId, subject }) {
+export function AssetPanel({ ownerType, ownerId, subject, title = "写真", fixedAssetType = "" }) {
   const [assets, setAssets] = useState([]);
-  const [assetType, setAssetType] = useState("問題");
+  const [assetType, setAssetType] = useState(fixedAssetType || "問題");
   const [state, setState] = useState("");
+  const visibleAssets = fixedAssetType ? assets.filter((asset) => asset.asset_type === fixedAssetType) : assets;
 
   useEffect(() => {
     let cancelled = false;
@@ -29,6 +30,10 @@ export function AssetPanel({ ownerType, ownerId, subject }) {
     };
   }, [ownerType, ownerId]);
 
+  useEffect(() => {
+    if (fixedAssetType) setAssetType(fixedAssetType);
+  }, [fixedAssetType]);
+
   async function handleUpload(event) {
     const file = event.target.files?.[0];
     if (!file) return;
@@ -49,17 +54,19 @@ export function AssetPanel({ ownerType, ownerId, subject }) {
   return (
     <section className="submission-panel">
       <div className="submission-header">
-        <h3>写真</h3>
-        <span>{state || `${assets.length}枚`}</span>
+        <h3>{title}</h3>
+        <span>{state || `${visibleAssets.length}枚`}</span>
       </div>
       <div className="asset-controls">
-        <select value={assetType} onChange={(event) => setAssetType(event.target.value)}>
-          {assetTypes.map((type) => (
-            <option key={type} value={type}>
-              {type}
-            </option>
-          ))}
-        </select>
+        {!fixedAssetType && (
+          <select value={assetType} onChange={(event) => setAssetType(event.target.value)}>
+            {assetTypes.map((type) => (
+              <option key={type} value={type}>
+                {type}
+              </option>
+            ))}
+          </select>
+        )}
         <label className="upload-button">
           写真を追加
           <input type="file" accept="image/*" onChange={handleUpload} />
@@ -69,9 +76,9 @@ export function AssetPanel({ ownerType, ownerId, subject }) {
         <p className="submission-empty">ローカル保存では、追加した写真はこのブラウザだけの一時表示になります。</p>
       )}
       <div className="submission-grid">
-        {assets.map((asset) => (
+        {visibleAssets.map((asset) => (
           <a key={asset.id} href={asset.image_url} target="_blank" rel="noreferrer">
-            <span>{asset.asset_type}</span>
+            {!fixedAssetType && <span>{asset.asset_type}</span>}
             <img src={asset.image_url} alt={`${asset.asset_type} 写真`} />
           </a>
         ))}

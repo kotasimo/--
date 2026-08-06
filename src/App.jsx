@@ -42,6 +42,8 @@ export function App() {
   const [currentYear, setCurrentYear] = useState(2024);
   const [currentView, setCurrentView] = useState("table");
   const [studyMode, setStudyMode] = useState("problem");
+  const [customMode, setCustomMode] = useState("problem");
+  const [isSidebarCollapsed, setIsSidebarCollapsed] = useState(false);
   const [recordsBySubject, setRecordsBySubject] = useState({});
   const [customBySubject, setCustomBySubject] = useState({});
   const [selectedCustomId, setSelectedCustomId] = useState("");
@@ -56,7 +58,11 @@ export function App() {
   const subjectRecords = recordsBySubject[currentSubject] || makeEmptySubjectRecords(currentSubject);
   const currentRecord = subjectRecords[currentYear] || makeEmptySubjectRecords(currentSubject)[currentYear];
   const customProblems = customBySubject[currentSubject] || [];
-  const selectedCustomProblem = customProblems.find((problem) => problem.id === selectedCustomId) || customProblems[0];
+  const selectedCustomProblem =
+    Object.values(customBySubject)
+      .flat()
+      .find((problem) => problem.id === selectedCustomId) ||
+    customProblems[0];
 
   useEffect(() => {
     document.documentElement.style.setProperty("--image-width", `${Math.round((980 * zoom) / 100)}px`);
@@ -155,34 +161,79 @@ export function App() {
     }
   }
 
-  function saveMemoDraft(value) {
+  function updateMemoDraft(value) {
+    setMemoDraft(value);
+    updateRecord(currentSubject, currentYear, "memo", value);
+    setSaveState("未保存");
+  }
+
+  async function saveMemoNow(value) {
+    window.clearTimeout(memoSaveTimer.current);
     setMemoDraft(value);
     updateRecord(currentSubject, currentYear, "memo", value);
     setSaveState("保存中");
-    window.clearTimeout(memoSaveTimer.current);
-    memoSaveTimer.current = window.setTimeout(() => {
-      saveRecordField(currentSubject, currentYear, "memo", value)
-        .then(() => setSaveState("保存済み"))
-        .catch((error) => {
-          console.error(error);
-          setSaveState("保存失敗");
-        });
-    }, 350);
+    try {
+      await saveRecordField(currentSubject, currentYear, "memo", value);
+      setSaveState("保存済み");
+    } catch (error) {
+      console.error(error);
+      setSaveState("保存失敗");
+    }
   }
 
   function updateCustomProblem(id, field, value) {
     setCustomBySubject((current) => {
-      const items = current[currentSubject] || [];
-      return {
-        ...current,
-        [currentSubject]: items.map((problem) =>
-          problem.id === id ? { ...problem, [field]: value, updated_at: new Date().toISOString() } : problem,
-        ),
-      };
+      const updatedAt = new Date().toISOString();
+      return Object.fromEntries(
+        Object.entries(current).map(([subject, items]) => [
+          subject,
+          items.map((problem) =>
+            problem.id === id ? { ...problem, [field]: value, updated_at: updatedAt } : problem,
+          ),
+        ]),
+      );
+    });
+  }
+
+  function moveCustomProblemSubject(id, subject) {
+    setCustomBySubject((current) => {
+      const updatedAt = new Date().toISOString();
+      let targetProblem = null;
+      const next = Object.fromEntries(
+        Object.entries(current).map(([key, items]) => [
+          key,
+          items.filter((problem) => {
+            if (problem.id !== id) return true;
+            targetProblem = { ...problem, subject, updated_at: updatedAt };
+            return false;
+          }),
+        ]),
+      );
+
+      if (!targetProblem) return current;
+      next[subject] = [targetProblem, ...(next[subject] || [])];
+      return next;
     });
   }
 
   function saveCustomField(id, field, value) {
+    if (field === "subject") {
+      moveCustomProblemSubject(id, value);
+      setCurrentSubject(value);
+      setSaveState("保存中");
+      window.clearTimeout(customSaveTimer.current);
+      saveCustomProblemField(id, field, value)
+        .then(() => {
+          setCurrentSubject(value);
+          setSaveState("保存済み");
+        })
+        .catch((error) => {
+          console.error(error);
+          setSaveState("保存失敗");
+        });
+      return;
+    }
+
     updateCustomProblem(id, field, value);
     setSaveState("保存中");
     window.clearTimeout(customSaveTimer.current);
@@ -228,12 +279,15 @@ export function App() {
     setStudyMode(mode);
     setCurrentView("study");
     setAppMode("past");
+    window.requestAnimationFrame(() => window.scrollTo({ top: 0, left: 0 }));
   }
 
-  function openCustomProblem(id) {
+  function openCustomProblem(id, mode = "problem") {
     setSelectedCustomId(id);
+    setCustomMode(mode);
     setCurrentView("custom-detail");
     setAppMode("custom");
+    window.requestAnimationFrame(() => window.scrollTo({ top: 0, left: 0 }));
   }
 
   function changeSubject(subject) {
@@ -247,24 +301,40 @@ export function App() {
   }
 
   const saveLabel = appMode === "custom" ? customLoadState || getStorageModeLabel() : loadState || getStorageModeLabel();
+  const isDetailView = currentView === "study" || currentView === "custom-detail";
 
   return (
-    <main className="app">
-      <Sidebar
-        appMode={appMode}
-        currentSubject={currentSubject}
-        currentYear={currentYear}
-        currentView={currentView}
-        selectedCustomId={selectedCustomProblem?.id || ""}
-        customProblems={customProblems}
-        hasMemo={helpers.hasMemo}
-        onAppModeChange={changeAppMode}
-        onSubjectChange={changeSubject}
-        onYearOpen={openStudy}
-        onCustomOpen={openCustomProblem}
-        onCustomCreate={addCustomProblem}
-      />
+    <main className={`app ${isSidebarCollapsed ? "sidebar-collapsed" : ""} ${isDetailView ? "mobile-detail-mode" : "mobile-home-mode"}`}>
+      {isSidebarCollapsed ? (
+        <button className="sidebar-expand-button" type="button" onClick={() => setIsSidebarCollapsed(false)}>
+          メニュー
+        </button>
+      ) : (
+        <Sidebar
+          appMode={appMode}
+          currentSubject={currentSubject}
+          currentYear={currentYear}
+          currentView={currentView}
+          selectedCustomId={selectedCustomProblem?.id || ""}
+          customProblems={customProblems}
+          hasMemo={helpers.hasMemo}
+          onAppModeChange={changeAppMode}
+          onSubjectChange={changeSubject}
+          onYearOpen={openStudy}
+          onCustomOpen={openCustomProblem}
+          onCustomCreate={addCustomProblem}
+          onCollapse={() => setIsSidebarCollapsed(true)}
+        />
+      )}
       <section className="workspace">
+        {isDetailView && (
+          <button className="mobile-home-button" type="button" onClick={() => {
+            setCurrentView("table");
+            window.requestAnimationFrame(() => window.scrollTo({ top: 0, left: 0 }));
+          }}>
+            ホーム
+          </button>
+        )}
         {appMode === "past" && currentView === "table" && (
           <OverviewTable
             currentSubject={currentSubject}
@@ -284,7 +354,8 @@ export function App() {
             memo={memoDraft}
             saveState={loadState || saveState}
             zoom={zoom}
-            onMemoChange={saveMemoDraft}
+            onMemoChange={updateMemoDraft}
+            onMemoSave={saveMemoNow}
             onModeChange={setStudyMode}
             onZoomChange={setZoom}
           />
@@ -302,8 +373,10 @@ export function App() {
         {appMode === "custom" && currentView === "custom-detail" && selectedCustomProblem && (
           <CustomProblemView
             problem={selectedCustomProblem}
+            mode={customMode}
             saveState={customLoadState || saveState}
             onFieldChange={(field, value) => saveCustomField(selectedCustomProblem.id, field, value)}
+            onModeChange={setCustomMode}
           />
         )}
       </section>

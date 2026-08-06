@@ -14,11 +14,17 @@ export function Sidebar({
   onYearOpen,
   onCustomOpen,
   onCustomCreate,
+  onCollapse,
 }) {
   return (
     <aside className="sidebar">
       <div className="title">
-        <h1>過去問メモ</h1>
+        <div className="sidebar-title-row">
+          <h1>過去問メモ</h1>
+          <button className="sidebar-collapse-button" type="button" onClick={onCollapse}>
+            畳む
+          </button>
+        </div>
         <p>問題ごとに資料を見ながら整理</p>
       </div>
 

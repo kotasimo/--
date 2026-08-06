@@ -47,6 +47,8 @@ VITE_SUPABASE_PUBLISHABLE_KEY=SupabaseのPublishable key
 
 追加問題を使う場合も、同じ `supabase/schema.sql` をSQL Editorで再実行します。既存テーブルは壊さず、不足しているテーブルだけ追加されます。
 
+相談ログを使う場合も、同じ `supabase/schema.sql` をSQL Editorで再実行します。`consultation_logs` テーブルが追加されます。
+
 ## Supabaseのテーブル
 
 `study_records`

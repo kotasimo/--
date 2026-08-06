@@ -24,13 +24,19 @@ export function CustomProblemTable({ currentSubject, problems, saveLabel, onCrea
             + 新規追加
           </button>
         </div>
+        <div className="mobile-detail-guide">
+          スマホでは左のメニューから追加問題を選んで、詳細画面で確認します。
+        </div>
         <div className="overview-scroll">
           <table className="overview-table custom-table">
             <thead>
               <tr>
                 <th>タイトル</th>
                 <th>問題</th>
-                <th>一言メモ</th>
+                <th>解答</th>
+                <th>チャット</th>
+                <th>記録</th>
+                <th>メモ</th>
               </tr>
             </thead>
             <tbody>
@@ -45,8 +51,18 @@ export function CustomProblemTable({ currentSubject, problems, saveLabel, onCrea
                     />
                   </th>
                   <td>
-                    <button className="open-problem-button" type="button" onClick={() => onOpen(problem.id)}>
-                      開く
+                    <button className="open-problem-button status-dot-button" type="button" title={`${problem.title || "追加問題"}の問題を表示`} aria-label={`${problem.title || "追加問題"}の問題を表示`} onClick={() => onOpen(problem.id, "problem")}>
+                      ●
+                    </button>
+                  </td>
+                  <td>
+                    <button className="open-problem-button status-dot-button" type="button" title={`${problem.title || "追加問題"}の解答を表示`} aria-label={`${problem.title || "追加問題"}の解答を表示`} onClick={() => onOpen(problem.id, "answer")}>
+                      ●
+                    </button>
+                  </td>
+                  <td>
+                    <button className="open-problem-button status-dot-button" type="button" title={`${problem.title || "追加問題"}のチャットを表示`} aria-label={`${problem.title || "追加問題"}のチャットを表示`} onClick={() => onOpen(problem.id, "logs")}>
+                      ●
                     </button>
                   </td>
                   <td>
@@ -57,11 +73,22 @@ export function CustomProblemTable({ currentSubject, problems, saveLabel, onCrea
                       onChange={(event) => onCellChange(problem.id, "short_memo", event.target.value)}
                     />
                   </td>
+                  <td>
+                    <button
+                      className={`open-problem-button memo-open-button ${problem.memo?.trim() ? "has-note" : ""}`}
+                      type="button"
+                      title={`${problem.title || "追加問題"}のメモを表示`}
+                      aria-label={`${problem.title || "追加問題"}のメモを表示`}
+                      onClick={() => onOpen(problem.id, "memo")}
+                    >
+                      {problem.memo?.trim() ? "●" : "-"}
+                    </button>
+                  </td>
                 </tr>
               ))}
               {problems.length === 0 && (
                 <tr>
-                  <td className="empty-row" colSpan="3">
+                  <td className="empty-row" colSpan="6">
                     まだ追加問題がありません。
                   </td>
                 </tr>
