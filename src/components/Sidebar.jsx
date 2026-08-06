@@ -29,37 +29,38 @@ export function Sidebar({
             ‹
           </button>
         </div>
-        <p>問題ごとに資料を見ながら整理</p>
       </div>
 
-      <div className="category-tabs" aria-label="部門">
-        {Object.entries(examCategories).map(([key, category]) => (
+      <div className="sidebar-switch-row">
+        <div className="category-tabs" aria-label="部門">
+          {Object.entries(examCategories).map(([key, category]) => (
+            <button
+              key={key}
+              className={currentCategory === key ? "active" : ""}
+              type="button"
+              onClick={() => onCategoryChange(key)}
+            >
+              {category.label}
+            </button>
+          ))}
+        </div>
+
+        <div className="mode-tabs" aria-label="種類">
           <button
-            key={key}
-            className={currentCategory === key ? "active" : ""}
+            className={appMode === "past" ? "active" : ""}
             type="button"
-            onClick={() => onCategoryChange(key)}
+            onClick={() => onAppModeChange("past")}
           >
-            {category.label}
+            過去問
           </button>
-        ))}
-      </div>
-
-      <div className="mode-tabs" aria-label="種類">
-        <button
-          className={appMode === "past" ? "active" : ""}
-          type="button"
-          onClick={() => onAppModeChange("past")}
-        >
-          過去問
-        </button>
-        <button
-          className={appMode === "custom" ? "active" : ""}
-          type="button"
-          onClick={() => onAppModeChange("custom")}
-        >
-          追加問題
-        </button>
+          <button
+            className={appMode === "custom" ? "active" : ""}
+            type="button"
+            onClick={() => onAppModeChange("custom")}
+          >
+            追加問題
+          </button>
+        </div>
       </div>
 
       <div className="subject-tabs" aria-label="科目">

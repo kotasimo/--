@@ -50,7 +50,7 @@ a {
   overflow: auto;
   border-right: 1px solid var(--line);
   background: #eef3f5;
-  padding: 20px 16px;
+  padding: 18px 14px;
 }
 
 .sidebar-title-row {
@@ -58,6 +58,7 @@ a {
   align-items: flex-start;
   justify-content: space-between;
   gap: 10px;
+  margin-bottom: 14px;
 }
 
 .sidebar-collapse-button,
@@ -116,12 +117,12 @@ a {
 
 .title h1 {
   margin: 0;
-  font-size: 24px;
+  font-size: 23px;
   letter-spacing: 0;
 }
 
 .title p {
-  margin: 6px 0 18px;
+  margin: 5px 0 14px;
   color: var(--muted);
   font-size: 13px;
 }
@@ -129,26 +130,35 @@ a {
 .subject-tabs {
   display: grid;
   grid-template-columns: repeat(2, 1fr);
-  gap: 8px;
-  margin-bottom: 16px;
+  gap: 7px;
+  margin-bottom: 14px;
+}
+
+.sidebar-switch-row {
+  display: grid;
+  grid-template-columns: 0.82fr 1fr;
+  gap: 7px;
+  margin-bottom: 10px;
 }
 
 .category-tabs {
   display: grid;
   grid-template-columns: repeat(2, 1fr);
-  gap: 8px;
-  margin-bottom: 12px;
+  gap: 3px;
   border: 1px solid var(--line);
-  border-radius: 8px;
+  border-radius: 999px;
   background: #ffffff;
-  padding: 4px;
+  padding: 3px;
 }
 
 .mode-tabs {
   display: grid;
   grid-template-columns: repeat(2, 1fr);
-  gap: 8px;
-  margin-bottom: 12px;
+  gap: 3px;
+  border: 1px solid var(--line);
+  border-radius: 999px;
+  background: #ffffff;
+  padding: 3px;
 }
 
 .category-tabs button,
@@ -159,28 +169,51 @@ a {
   background: var(--panel);
   color: var(--ink);
   cursor: pointer;
+  transition:
+    border-color 0.15s ease,
+    background 0.15s ease,
+    color 0.15s ease,
+    box-shadow 0.15s ease;
 }
 
 .category-tabs button {
-  height: 34px;
-  border-radius: 6px;
+  height: 29px;
+  border-color: transparent;
+  border-radius: 999px;
+  background: transparent;
+  color: var(--muted);
+  font-size: 13px;
   font-weight: 800;
 }
 
 .mode-tabs button {
-  height: 38px;
-  border-radius: 6px;
-  font-weight: 700;
+  height: 29px;
+  border-color: transparent;
+  border-radius: 999px;
+  background: transparent;
+  color: var(--muted);
+  font-size: 12px;
+  font-weight: 800;
 }
 
 .subject-tab {
-  height: 38px;
-  border-radius: 6px;
+  height: 34px;
+  border-radius: 7px;
+  background: #ffffff;
   font-weight: 700;
 }
 
-.category-tabs button.active,
-.mode-tabs button.active,
+.category-tabs button.active {
+  background: var(--accent);
+  color: #ffffff;
+  box-shadow: 0 3px 8px rgba(15, 118, 110, 0.16);
+}
+
+.mode-tabs button.active {
+  background: var(--accent-soft);
+  color: var(--accent);
+}
+
 .subject-tab.active {
   border-color: var(--accent);
   background: var(--accent);
@@ -189,7 +222,7 @@ a {
 
 .year-list {
   display: grid;
-  gap: 6px;
+  gap: 5px;
 }
 
 .year-button {
@@ -197,9 +230,10 @@ a {
   align-items: center;
   justify-content: space-between;
   width: 100%;
-  min-height: 38px;
-  border-radius: 6px;
-  padding: 0 12px;
+  min-height: 33px;
+  border-radius: 7px;
+  padding: 0 10px;
+  background: #ffffff;
   text-align: left;
 }
 
