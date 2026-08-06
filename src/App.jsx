@@ -14,7 +14,7 @@ import {
 } from "./services/customProblemRepository.js";
 import { deleteAssetsForOwner } from "./services/assetRepository.js";
 import { deleteConsultationLogsForOwner } from "./services/consultationRepository.js";
-import { tableColumns, years } from "./data/examMeta.js";
+import { examCategories, getYearsForSubject, tableColumns } from "./data/examMeta.js";
 import {
   getStorageModeLabel,
   getZoom,
@@ -24,6 +24,7 @@ import {
 } from "./services/studyRepository.js";
 
 function makeEmptySubjectRecords(subject) {
+  const years = getYearsForSubject(subject);
   return Object.fromEntries(
     years.map((year) => [
       year,
@@ -41,6 +42,7 @@ function makeEmptySubjectRecords(subject) {
 }
 
 export function App() {
+  const [currentCategory, setCurrentCategory] = useState("professional");
   const [appMode, setAppMode] = useState("past");
   const [currentSubject, setCurrentSubject] = useState("vibration");
   const [currentYear, setCurrentYear] = useState(2024);
@@ -60,6 +62,9 @@ export function App() {
   const memoSaveTimer = useRef(null);
   const customSaveTimer = useRef(null);
 
+  const currentCategoryMeta = examCategories[currentCategory];
+  const currentYears = currentCategoryMeta.years;
+  const subjectKeys = currentCategoryMeta.subjects;
   const subjectRecords = recordsBySubject[currentSubject] || makeEmptySubjectRecords(currentSubject);
   const currentRecord = subjectRecords[currentYear] || makeEmptySubjectRecords(currentSubject)[currentYear];
   const customProblems = customBySubject[currentSubject] || [];
@@ -371,6 +376,15 @@ export function App() {
 
   function changeSubject(subject) {
     setCurrentSubject(subject);
+    setCurrentYear(getYearsForSubject(subject)[0]);
+    setCurrentView("table");
+  }
+
+  function changeCategory(category) {
+    const nextSubject = examCategories[category].subjects[0];
+    setCurrentCategory(category);
+    setCurrentSubject(nextSubject);
+    setCurrentYear(examCategories[category].years[0]);
     setCurrentView("table");
   }
 
@@ -390,13 +404,17 @@ export function App() {
         </button>
       ) : (
         <Sidebar
+          currentCategory={currentCategory}
           appMode={appMode}
           currentSubject={currentSubject}
           currentYear={currentYear}
           currentView={currentView}
+          currentYears={currentYears}
+          subjectKeys={subjectKeys}
           selectedCustomId={selectedCustomProblem?.id || ""}
           customProblems={customProblems}
           hasMemo={helpers.hasMemo}
+          onCategoryChange={changeCategory}
           onAppModeChange={changeAppMode}
           onSubjectChange={changeSubject}
           onYearOpen={openStudy}
@@ -417,6 +435,7 @@ export function App() {
         {appMode === "past" && currentView === "table" && (
           <OverviewTable
             currentSubject={currentSubject}
+            years={currentYears}
             getCell={helpers.getCell}
             hasMemo={helpers.hasMemo}
             hasTableEntry={helpers.hasTableEntry}
@@ -442,6 +461,7 @@ export function App() {
         {appMode === "custom" && currentView === "table" && (
           <CustomProblemTable
             currentSubject={currentSubject}
+            subjectKeys={subjectKeys}
             problems={customProblems}
             saveLabel={saveLabel}
             onCreate={addCustomProblem}
@@ -455,6 +475,7 @@ export function App() {
             mode={customMode}
             saveState={customLoadState || saveState}
             isUnsaved={unsavedCustomIds.has(selectedCustomProblem.id)}
+            subjectKeys={subjectKeys}
             onFieldChange={(field, value) => saveCustomField(selectedCustomProblem.id, field, value)}
             onSave={saveCustomProblem}
             onDelete={removeCustomProblem}

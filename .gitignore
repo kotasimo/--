@@ -3,3 +3,10 @@ dist/
 .env
 .env.local
 npm-debug.log*
+work/basic_04_24.pdf
+work/basic_pdf_pages.txt
+work/basic_render/
+work/basic_labels/
+work/basic_note/
+work/linear_labels/
+work/linear_note/

@@ -1,14 +1,18 @@
 import React from "react";
-import { years, subjects } from "../data/examMeta.js";
+import { examCategories, subjects } from "../data/examMeta.js";
 
 export function Sidebar({
+  currentCategory,
   appMode,
   currentSubject,
   currentYear,
   currentView,
+  currentYears,
+  subjectKeys,
   selectedCustomId,
   customProblems,
   hasMemo,
+  onCategoryChange,
   onAppModeChange,
   onSubjectChange,
   onYearOpen,
@@ -26,6 +30,19 @@ export function Sidebar({
           </button>
         </div>
         <p>問題ごとに資料を見ながら整理</p>
+      </div>
+
+      <div className="category-tabs" aria-label="部門">
+        {Object.entries(examCategories).map(([key, category]) => (
+          <button
+            key={key}
+            className={currentCategory === key ? "active" : ""}
+            type="button"
+            onClick={() => onCategoryChange(key)}
+          >
+            {category.label}
+          </button>
+        ))}
       </div>
 
       <div className="mode-tabs" aria-label="種類">
@@ -46,21 +63,21 @@ export function Sidebar({
       </div>
 
       <div className="subject-tabs" aria-label="科目">
-        {Object.entries(subjects).map(([key, subject]) => (
+        {subjectKeys.map((key) => (
           <button
             key={key}
             className={`subject-tab ${currentSubject === key ? "active" : ""}`}
             type="button"
             onClick={() => onSubjectChange(key)}
           >
-            {subject.label}
+            {subjects[key].label}
           </button>
         ))}
       </div>
 
       {appMode === "past" ? (
         <div className="year-list" aria-label="年度">
-          {years.map((year) => (
+          {currentYears.map((year) => (
             <button
               key={year}
               className={[

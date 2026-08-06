@@ -4,7 +4,7 @@ import { AssetPanel } from "./AssetPanel.jsx";
 import { ConsultationPanel } from "./ConsultationPanel.jsx";
 import { MemoPanel } from "./StudyView.jsx";
 
-export function CustomProblemView({ problem, mode, saveState, isUnsaved, onSave, onDelete, onModeChange }) {
+export function CustomProblemView({ problem, mode, saveState, isUnsaved, subjectKeys, onSave, onDelete, onModeChange }) {
   const [draft, setDraft] = useState(problem);
 
   useEffect(() => {
@@ -37,9 +37,9 @@ export function CustomProblemView({ problem, mode, saveState, isUnsaved, onSave,
             <label>
               教科
               <select value={draft.subject} onChange={(event) => updateDraft("subject", event.target.value)}>
-                {Object.entries(subjects).map(([key, item]) => (
+                {subjectKeys.map((key) => (
                   <option key={key} value={key}>
-                    {item.label}
+                    {subjects[key].label}
                   </option>
                 ))}
               </select>

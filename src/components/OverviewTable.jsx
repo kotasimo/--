@@ -1,10 +1,11 @@
 import React, { useEffect, useMemo, useRef, useState } from "react";
-import { problemImagePath, subjects, tableColumns, years } from "../data/examMeta.js";
+import { problemImagePath, subjects, tableColumns } from "../data/examMeta.js";
 import { ChatMarkdown, parseChatContent, questionTitle } from "./ConsultationPanel.jsx";
 import { listConsultationLogs, pastExamOwnerId } from "../services/consultationRepository.js";
 
 export function OverviewTable({
   currentSubject,
+  years,
   getCell,
   hasMemo,
   hasTableEntry,

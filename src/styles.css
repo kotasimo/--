@@ -133,6 +133,17 @@ a {
   margin-bottom: 16px;
 }
 
+.category-tabs {
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
+  gap: 8px;
+  margin-bottom: 12px;
+  border: 1px solid var(--line);
+  border-radius: 8px;
+  background: #ffffff;
+  padding: 4px;
+}
+
 .mode-tabs {
   display: grid;
   grid-template-columns: repeat(2, 1fr);
@@ -140,6 +151,7 @@ a {
   margin-bottom: 12px;
 }
 
+.category-tabs button,
 .mode-tabs button,
 .subject-tab,
 .year-button {
@@ -147,6 +159,12 @@ a {
   background: var(--panel);
   color: var(--ink);
   cursor: pointer;
+}
+
+.category-tabs button {
+  height: 34px;
+  border-radius: 6px;
+  font-weight: 800;
 }
 
 .mode-tabs button {
@@ -161,6 +179,7 @@ a {
   font-weight: 700;
 }
 
+.category-tabs button.active,
 .mode-tabs button.active,
 .subject-tab.active {
   border-color: var(--accent);
@@ -744,11 +763,19 @@ textarea:focus {
 }
 
 .view-switch {
+  position: sticky;
+  top: 0;
+  z-index: 5;
   display: flex;
   align-items: center;
   flex-wrap: wrap;
   gap: 8px;
-  margin-bottom: 18px;
+  margin: 0 -4px 18px;
+  border-bottom: 1px solid rgba(216, 224, 228, 0.85);
+  background: rgba(245, 247, 248, 0.96);
+  padding: 10px 4px;
+  backdrop-filter: blur(8px);
+  box-shadow: 0 8px 18px rgba(15, 31, 37, 0.05);
 }
 
 .view-switch button {
@@ -1554,10 +1581,12 @@ textarea:focus {
   }
 
   .view-switch {
+    top: 0;
     display: grid;
     grid-template-columns: repeat(4, minmax(0, 1fr));
     gap: 6px;
-    margin-bottom: 10px;
+    margin: 0 -10px 10px;
+    padding: 8px 10px;
   }
 
   .view-switch button {

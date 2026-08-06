@@ -1,4 +1,4 @@
-import { tableColumns, years } from "../data/examMeta.js";
+import { getYearsForSubject, tableColumns } from "../data/examMeta.js";
 import { isSupabaseConfigured, supabase } from "./supabaseClient.js";
 
 const NOTE_PREFIX = "nagoya-exam-note";
@@ -34,6 +34,7 @@ export function saveZoom(value) {
 }
 
 export async function loadSubjectRecords(subject) {
+  const years = getYearsForSubject(subject);
   const records = Object.fromEntries(years.map((year) => [year, emptyRecord(subject, year)]));
 
   if (!isSupabaseConfigured) {
