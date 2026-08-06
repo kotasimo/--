@@ -5,7 +5,6 @@ import { ConsultationPanel } from "./ConsultationPanel.jsx";
 import { MemoPanel } from "./StudyView.jsx";
 
 export function CustomProblemView({ problem, mode, saveState, isUnsaved, onSave, onDelete, onModeChange }) {
-  const subject = subjects[problem.subject];
   const [draft, setDraft] = useState(problem);
 
   useEffect(() => {
@@ -64,7 +63,6 @@ export function CustomProblemView({ problem, mode, saveState, isUnsaved, onSave,
     <section className="study-view">
       <header className="topbar">
         <div>
-          <div className="eyebrow">{subject.label} 追加問題</div>
           <h2>{problem.title || "新しい問題"}</h2>
         </div>
         <div className="detail-header-actions">
