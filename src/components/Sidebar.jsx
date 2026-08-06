@@ -21,8 +21,8 @@ export function Sidebar({
       <div className="title">
         <div className="sidebar-title-row">
           <h1>過去問メモ</h1>
-          <button className="sidebar-collapse-button" type="button" onClick={onCollapse}>
-            畳む
+          <button className="sidebar-collapse-button" type="button" aria-label="サイドバーを畳む" title="サイドバーを畳む" onClick={onCollapse}>
+            ‹
           </button>
         </div>
         <p>問題ごとに資料を見ながら整理</p>

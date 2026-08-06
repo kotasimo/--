@@ -385,8 +385,8 @@ export function App() {
   return (
     <main className={`app ${isSidebarCollapsed ? "sidebar-collapsed" : ""} ${isDetailView ? "mobile-detail-mode" : "mobile-home-mode"}`}>
       {isSidebarCollapsed ? (
-        <button className="sidebar-expand-button" type="button" onClick={() => setIsSidebarCollapsed(false)}>
-          メニュー
+        <button className="sidebar-expand-button" type="button" aria-label="サイドバーを開く" title="サイドバーを開く" onClick={() => setIsSidebarCollapsed(false)}>
+          ☰
         </button>
       ) : (
         <Sidebar
