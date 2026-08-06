@@ -78,3 +78,30 @@ export async function uploadAsset({ ownerType, ownerId, subject, assetType, file
   if (error) throw error;
   return data;
 }
+
+export async function deleteAssetsForOwner(ownerType, ownerId) {
+  if (!isSupabaseConfigured) {
+    writeLocalAssets(readLocalAssets().filter((item) => item.owner_type !== ownerType || item.owner_id !== ownerId));
+    return;
+  }
+
+  const { data: assets, error: listError } = await supabase
+    .from("problem_assets")
+    .select("file_path")
+    .eq("owner_type", ownerType)
+    .eq("owner_id", ownerId);
+  if (listError) throw listError;
+
+  const paths = (assets || []).map((asset) => asset.file_path).filter(Boolean);
+  if (paths.length > 0) {
+    const { error: storageError } = await supabase.storage.from(BUCKET).remove(paths);
+    if (storageError) throw storageError;
+  }
+
+  const { error } = await supabase
+    .from("problem_assets")
+    .delete()
+    .eq("owner_type", ownerType)
+    .eq("owner_id", ownerId);
+  if (error) throw error;
+}

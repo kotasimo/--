@@ -78,3 +78,32 @@ export async function saveCustomProblemField(id, field, value) {
 
   if (error) throw error;
 }
+
+export async function saveCustomProblemFields(id, fields) {
+  const now = new Date().toISOString();
+
+  if (!isSupabaseConfigured) {
+    const items = readLocalProblems().map((item) =>
+      item.id === id ? { ...item, ...fields, updated_at: now } : item,
+    );
+    writeLocalProblems(items);
+    return;
+  }
+
+  const { error } = await supabase
+    .from("custom_problems")
+    .update({ ...fields, updated_at: now })
+    .eq("id", id);
+
+  if (error) throw error;
+}
+
+export async function deleteCustomProblem(id) {
+  if (!isSupabaseConfigured) {
+    writeLocalProblems(readLocalProblems().filter((item) => item.id !== id));
+    return;
+  }
+
+  const { error } = await supabase.from("custom_problems").delete().eq("id", id);
+  if (error) throw error;
+}

@@ -1,11 +1,64 @@
-import React from "react";
+import React, { useEffect, useState } from "react";
 import { subjects } from "../data/examMeta.js";
 import { AssetPanel } from "./AssetPanel.jsx";
 import { ConsultationPanel } from "./ConsultationPanel.jsx";
 import { MemoPanel } from "./StudyView.jsx";
 
-export function CustomProblemView({ problem, mode, saveState, onFieldChange, onModeChange }) {
+export function CustomProblemView({ problem, mode, saveState, isUnsaved, onSave, onDelete, onModeChange }) {
   const subject = subjects[problem.subject];
+  const [draft, setDraft] = useState(problem);
+
+  useEffect(() => {
+    setDraft(problem);
+  }, [problem.id, problem.updated_at]);
+
+  function updateDraft(field, value) {
+    setDraft((current) => ({ ...current, [field]: value }));
+  }
+
+  if (mode === "edit") {
+    return (
+      <section className="study-view custom-edit-view">
+        <header className="topbar">
+          <div>
+            <div className="eyebrow">追加問題</div>
+            <h2>{isUnsaved ? "新規追加" : "編集"}</h2>
+          </div>
+          {saveState === "保存失敗" && (
+            <div className="status needs-attention">{saveState}</div>
+          )}
+        </header>
+
+        <section className="custom-edit-panel">
+          <div className="custom-edit-grid">
+            <label>
+              タイトル
+              <input value={draft.title || ""} onChange={(event) => updateDraft("title", event.target.value)} />
+            </label>
+            <label>
+              教科
+              <select value={draft.subject} onChange={(event) => updateDraft("subject", event.target.value)}>
+                {Object.entries(subjects).map(([key, item]) => (
+                  <option key={key} value={key}>
+                    {item.label}
+                  </option>
+                ))}
+              </select>
+            </label>
+          </div>
+
+          <div className="custom-edit-save-row">
+            <button className="primary-action-button" type="button" onClick={() => onSave(draft)}>
+              保存
+            </button>
+          </div>
+        </section>
+
+        <AssetPanel ownerType="custom_problem" ownerId={problem.id} subject={draft.subject} title="問題画像" fixedAssetType="問題" />
+        <AssetPanel ownerType="custom_problem" ownerId={problem.id} subject={draft.subject} title="解答画像" fixedAssetType="解答" />
+      </section>
+    );
+  }
 
   return (
     <section className="study-view">
@@ -14,7 +67,15 @@ export function CustomProblemView({ problem, mode, saveState, onFieldChange, onM
           <div className="eyebrow">{subject.label} 追加問題</div>
           <h2>{problem.title || "新しい問題"}</h2>
         </div>
-        <div className={`status ${saveState === "保存中" ? "saving" : ""}`}>{saveState}</div>
+        <div className="detail-header-actions">
+          <button className="secondary-action-button" type="button" onClick={() => onModeChange("edit")}>
+            編集
+          </button>
+          <button className="danger-action-button" type="button" onClick={() => onDelete(problem)}>
+            削除
+          </button>
+          <div className={`status ${saveState === "保存中" ? "saving" : ""} ${saveState !== "保存済み" ? "needs-attention" : ""}`}>{saveState}</div>
+        </div>
       </header>
 
       <div className="view-switch" aria-label="表示切り替え">
@@ -33,10 +94,10 @@ export function CustomProblemView({ problem, mode, saveState, onFieldChange, onM
       </div>
 
       {mode === "problem" && (
-        <AssetPanel ownerType="custom_problem" ownerId={problem.id} subject={problem.subject} title="問題画像" fixedAssetType="問題" />
+        <AssetPanel ownerType="custom_problem" ownerId={problem.id} subject={problem.subject} title="問題画像" fixedAssetType="問題" editable={false} />
       )}
       {mode === "answer" && (
-        <AssetPanel ownerType="custom_problem" ownerId={problem.id} subject={problem.subject} title="解答画像" fixedAssetType="解答" />
+        <AssetPanel ownerType="custom_problem" ownerId={problem.id} subject={problem.subject} title="解答画像" fixedAssetType="解答" editable={false} />
       )}
       {mode === "logs" && (
         <ConsultationPanel
@@ -46,27 +107,7 @@ export function CustomProblemView({ problem, mode, saveState, onFieldChange, onM
           defaultTitle={problem.title || "追加問題"}
         />
       )}
-      {mode === "memo" && (
-        <section className="custom-memo-view">
-          <section className="memo-panel detail-fields">
-            <label>
-              タイトル
-              <input value={problem.title || ""} onChange={(event) => onFieldChange("title", event.target.value)} />
-            </label>
-            <label>
-              教科
-              <select value={problem.subject} onChange={(event) => onFieldChange("subject", event.target.value)}>
-                {Object.entries(subjects).map(([key, item]) => (
-                  <option key={key} value={key}>
-                    {item.label}
-                  </option>
-                ))}
-              </select>
-            </label>
-          </section>
-          <MemoPanel memo={problem.memo || ""} onMemoSave={(value) => onFieldChange("memo", value)} />
-        </section>
-      )}
+      {mode === "memo" && <MemoPanel memo={problem.memo || ""} onMemoSave={(value) => onSave({ ...problem, memo: value })} />}
     </section>
   );
 }

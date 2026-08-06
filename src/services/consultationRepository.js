@@ -57,3 +57,17 @@ export async function addConsultationLog({ ownerType, ownerId, subject, title, c
   if (error) throw error;
   return data;
 }
+
+export async function deleteConsultationLogsForOwner(ownerType, ownerId) {
+  if (!isSupabaseConfigured) {
+    writeLocalLogs(readLocalLogs().filter((item) => item.owner_type !== ownerType || item.owner_id !== ownerId));
+    return;
+  }
+
+  const { error } = await supabase
+    .from("consultation_logs")
+    .delete()
+    .eq("owner_type", ownerType)
+    .eq("owner_id", ownerId);
+  if (error) throw error;
+}

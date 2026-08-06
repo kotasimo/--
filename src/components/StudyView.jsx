@@ -28,7 +28,7 @@ export function StudyView({
           <div className="eyebrow">{subject.label}</div>
           <h2>{year}年度</h2>
         </div>
-        <div className={`status ${saveState === "保存中" ? "saving" : ""}`}>{saveState}</div>
+        <div className={`status ${saveState === "保存中" ? "saving" : ""} ${saveState !== "保存済み" ? "needs-attention" : ""}`}>{saveState}</div>
       </header>
 
       <div className="view-switch" aria-label="表示切り替え">

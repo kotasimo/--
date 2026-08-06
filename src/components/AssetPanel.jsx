@@ -4,7 +4,7 @@ import { isSupabaseConfigured } from "../services/supabaseClient.js";
 
 const assetTypes = ["問題", "解答", "メモ", "参考"];
 
-export function AssetPanel({ ownerType, ownerId, subject, title = "写真", fixedAssetType = "" }) {
+export function AssetPanel({ ownerType, ownerId, subject, title = "写真", fixedAssetType = "", editable = true }) {
   const [assets, setAssets] = useState([]);
   const [assetType, setAssetType] = useState(fixedAssetType || "問題");
   const [state, setState] = useState("");
@@ -52,27 +52,33 @@ export function AssetPanel({ ownerType, ownerId, subject, title = "写真", fixe
   }
 
   return (
-    <section className="submission-panel">
+    <section className={`submission-panel ${editable ? "is-editable" : "is-readonly"}`}>
       <div className="submission-header">
         <h3>{title}</h3>
-        <span>{state || `${visibleAssets.length}枚`}</span>
-      </div>
-      <div className="asset-controls">
-        {!fixedAssetType && (
-          <select value={assetType} onChange={(event) => setAssetType(event.target.value)}>
-            {assetTypes.map((type) => (
-              <option key={type} value={type}>
-                {type}
-              </option>
-            ))}
-          </select>
+        {!editable && visibleAssets[0] ? (
+          <a href={visibleAssets[0].image_url} target="_blank" rel="noreferrer">画像だけ開く</a>
+        ) : (
+          <span>{state || `${visibleAssets.length}枚`}</span>
         )}
-        <label className="upload-button">
-          写真を追加
-          <input type="file" accept="image/*" onChange={handleUpload} />
-        </label>
       </div>
-      {!isSupabaseConfigured && (
+      {editable && (
+        <div className="asset-controls">
+          {!fixedAssetType && (
+            <select value={assetType} onChange={(event) => setAssetType(event.target.value)}>
+              {assetTypes.map((type) => (
+                <option key={type} value={type}>
+                  {type}
+                </option>
+              ))}
+            </select>
+          )}
+          <label className="upload-button">
+            写真を追加
+            <input type="file" accept="image/*" onChange={handleUpload} />
+          </label>
+        </div>
+      )}
+      {editable && !isSupabaseConfigured && (
         <p className="submission-empty">ローカル保存では、追加した写真はこのブラウザだけの一時表示になります。</p>
       )}
       <div className="submission-grid">
@@ -82,6 +88,9 @@ export function AssetPanel({ ownerType, ownerId, subject, title = "写真", fixe
             <img src={asset.image_url} alt={`${asset.asset_type} 写真`} />
           </a>
         ))}
+        {visibleAssets.length === 0 && !editable && (
+          <p className="submission-empty">まだ画像がありません。</p>
+        )}
       </div>
     </section>
   );

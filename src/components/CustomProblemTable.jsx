@@ -42,13 +42,8 @@ export function CustomProblemTable({ currentSubject, problems, saveLabel, onCrea
             <tbody>
               {problems.map((problem) => (
                 <tr key={problem.id}>
-                  <th scope="row">
-                    <input
-                      className="table-input"
-                      type="text"
-                      value={problem.title || ""}
-                      onChange={(event) => onCellChange(problem.id, "title", event.target.value)}
-                    />
+                  <th className="custom-title-cell" scope="row">
+                    {problem.title || "新しい問題"}
                   </th>
                   <td>
                     <button className="open-problem-button status-dot-button" type="button" title={`${problem.title || "追加問題"}の問題を表示`} aria-label={`${problem.title || "追加問題"}の問題を表示`} onClick={() => onOpen(problem.id, "problem")}>

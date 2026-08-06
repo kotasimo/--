@@ -6,10 +6,14 @@ import { Sidebar } from "./components/Sidebar.jsx";
 import { StudyView } from "./components/StudyView.jsx";
 import {
   createCustomProblem,
+  deleteCustomProblem,
   listCustomProblems,
   makeCustomProblemDraft,
   saveCustomProblemField,
+  saveCustomProblemFields,
 } from "./services/customProblemRepository.js";
+import { deleteAssetsForOwner } from "./services/assetRepository.js";
+import { deleteConsultationLogsForOwner } from "./services/consultationRepository.js";
 import { tableColumns, years } from "./data/examMeta.js";
 import {
   getStorageModeLabel,
@@ -46,6 +50,7 @@ export function App() {
   const [isSidebarCollapsed, setIsSidebarCollapsed] = useState(false);
   const [recordsBySubject, setRecordsBySubject] = useState({});
   const [customBySubject, setCustomBySubject] = useState({});
+  const [unsavedCustomIds, setUnsavedCustomIds] = useState(() => new Set());
   const [selectedCustomId, setSelectedCustomId] = useState("");
   const [memoDraft, setMemoDraft] = useState("");
   const [saveState, setSaveState] = useState("保存済み");
@@ -253,24 +258,98 @@ export function App() {
       ...current,
       [currentSubject]: [draft, ...(current[currentSubject] || [])],
     }));
+    setUnsavedCustomIds((current) => new Set(current).add(draft.id));
     setSelectedCustomId(draft.id);
+    setCustomMode("edit");
     setCurrentView("custom-detail");
     setAppMode("custom");
+    setSaveState("未保存");
+  }
+
+  async function saveCustomProblem(problem) {
+    const wasUnsaved = unsavedCustomIds.has(problem.id);
+    const payload = {
+      subject: problem.subject,
+      title: problem.title?.trim() || "新しい問題",
+      short_memo: problem.short_memo || "",
+      memo: problem.memo || "",
+    };
+
+    updateCustomProblem(problem.id, "title", payload.title);
+    if (problem.subject !== currentSubject) moveCustomProblemSubject(problem.id, problem.subject);
     setSaveState("保存中");
 
     try {
-      const created = await createCustomProblem(draft);
-      setCustomBySubject((current) => ({
-        ...current,
-        [currentSubject]: (current[currentSubject] || []).map((problem) =>
-          problem.id === draft.id ? created : problem,
-        ),
-      }));
-      setSelectedCustomId(created.id);
+      if (wasUnsaved) {
+        const created = await createCustomProblem({ ...problem, ...payload });
+        setCustomBySubject((current) => {
+          const next = Object.fromEntries(
+            Object.entries(current).map(([subject, items]) => [
+              subject,
+              items.filter((item) => item.id !== problem.id),
+            ]),
+          );
+          next[created.subject] = [created, ...(next[created.subject] || [])];
+          return next;
+        });
+        setUnsavedCustomIds((current) => {
+          const next = new Set(current);
+          next.delete(problem.id);
+          return next;
+        });
+        setSelectedCustomId(created.id);
+        setCurrentSubject(created.subject);
+      } else {
+        await saveCustomProblemFields(problem.id, payload);
+        setCustomBySubject((current) => {
+          const next = Object.fromEntries(
+            Object.entries(current).map(([subject, items]) => [
+              subject,
+              items.filter((item) => item.id !== problem.id),
+            ]),
+          );
+          next[payload.subject] = [{ ...problem, ...payload, updated_at: new Date().toISOString() }, ...(next[payload.subject] || [])];
+          return next;
+        });
+        setCurrentSubject(payload.subject);
+      }
+      setCustomMode("problem");
       setSaveState("保存済み");
     } catch (error) {
       console.error(error);
       setSaveState("保存失敗");
+    }
+  }
+
+  async function removeCustomProblem(problem) {
+    if (!problem) return;
+    const ok = window.confirm(`「${problem.title || "新しい問題"}」を削除しますか？`);
+    if (!ok) return;
+
+    setSaveState("削除中");
+    setCustomBySubject((current) =>
+      Object.fromEntries(
+        Object.entries(current).map(([subject, items]) => [subject, items.filter((item) => item.id !== problem.id)]),
+      ),
+    );
+    setUnsavedCustomIds((current) => {
+      const next = new Set(current);
+      next.delete(problem.id);
+      return next;
+    });
+
+    try {
+      await deleteAssetsForOwner("custom_problem", problem.id);
+      await deleteConsultationLogsForOwner("custom_problem", problem.id);
+      if (!unsavedCustomIds.has(problem.id)) {
+        await deleteCustomProblem(problem.id);
+      }
+      setSelectedCustomId("");
+      setCurrentView("table");
+      setSaveState("保存済み");
+    } catch (error) {
+      console.error(error);
+      setSaveState("削除失敗");
     }
   }
 
@@ -375,7 +454,10 @@ export function App() {
             problem={selectedCustomProblem}
             mode={customMode}
             saveState={customLoadState || saveState}
+            isUnsaved={unsavedCustomIds.has(selectedCustomProblem.id)}
             onFieldChange={(field, value) => saveCustomField(selectedCustomProblem.id, field, value)}
+            onSave={saveCustomProblem}
+            onDelete={removeCustomProblem}
             onModeChange={setCustomMode}
           />
         )}
