@@ -6,6 +6,7 @@ const elements = {
   year: document.querySelector("#year"),
   title: document.querySelector("#title"),
   saveUrlButton: document.querySelector("#saveUrlButton"),
+  clearTargetButton: document.querySelector("#clearTargetButton"),
 };
 
 const subjectLabels = {
@@ -145,6 +146,10 @@ async function run(action) {
 }
 
 elements.saveUrlButton.addEventListener("click", () => run("url"));
+elements.clearTargetButton.addEventListener("click", async () => {
+  await chrome.storage.local.remove("pendingChatgptTarget");
+  setStatus("対象をリセット");
+});
 elements.subject.addEventListener("change", updateTitle);
 elements.year.addEventListener("input", updateTitle);
 document.querySelectorAll("input, select").forEach((input) => {

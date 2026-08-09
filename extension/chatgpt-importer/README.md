@@ -17,9 +17,12 @@ extension/chatgpt-importer
 6. Supabase URL と Publishable key を入れる。
 7. 院試サイトで問題の「チャット」を開く。
 8. 「ChatGPTに質問」を押す。
-9. ChatGPTで新しいチャットを始める。
+9. ChatGPT画面右下の「問題画像をコピー」を押す。
+10. 入力欄で `Ctrl+V` して画像を貼る。
+11. ChatGPTで新しいチャットを始める。
+12. ChatGPT画面右下の「このURLを保存」を押す。
 
-ChatGPTのURLが `https://chatgpt.com/c/...` になったら、そのURLを該当問題へ自動保存します。
+ChatGPT画面右下のパネルは、院試サイトから「ChatGPTに質問」を押した後だけ表示されます。
 
 手動で保存したい場合は、ChatGPTの会話ページで拡張アイコンを押し、科目と年度を選んで「このURLを保存」を押します。
 

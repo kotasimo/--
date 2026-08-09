@@ -1,4 +1,5 @@
 import React, { useEffect, useState } from "react";
+import { problemImagePath } from "../data/examMeta.js";
 import {
   deleteChatgptConversation,
   getChatgptConversation,
@@ -77,6 +78,12 @@ export function ConsultationPanel({ ownerType, ownerId, subject, defaultTitle })
   }
 
   function handleAskInChatgpt() {
+    const [targetSubject, targetYear] = ownerId.includes(":") ? ownerId.split(":") : [];
+    const imageUrl =
+      ownerType === "past_exam" && targetSubject && targetYear
+        ? `${window.location.origin}${problemImagePath(targetSubject, targetYear)}`
+        : "";
+
     window.postMessage(
       {
         type: "NAGOYA_EXAM_CHATGPT_TARGET",
@@ -85,6 +92,7 @@ export function ConsultationPanel({ ownerType, ownerId, subject, defaultTitle })
           ownerId,
           subject,
           title: defaultTitle || "ChatGPT",
+          imageUrl,
         },
       },
       window.location.origin,

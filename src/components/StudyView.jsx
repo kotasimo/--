@@ -63,6 +63,8 @@ export function StudyView({
         <ImagePanel
           title="問題画像"
           openLabel="画像だけ開く"
+          aiPasteLabel="AIに貼る"
+          openAiUrl="https://chatgpt.com/"
           src={problemSrc}
           alt={`${year}年度 ${subject.label} 問題画像`}
         />

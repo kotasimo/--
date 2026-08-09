@@ -3,7 +3,7 @@
   "name": "院試チャット保存",
   "version": "0.1.0",
   "description": "ChatGPTの会話を院試メモアプリの相談ログへ保存します。",
-  "permissions": ["activeTab", "storage", "scripting"],
+  "permissions": ["activeTab", "storage", "scripting", "clipboardWrite"],
   "host_permissions": [
     "https://chatgpt.com/*",
     "https://chat.openai.com/*",
@@ -15,6 +15,9 @@
   "action": {
     "default_popup": "popup.html",
     "default_title": "院試チャットに保存"
+  },
+  "background": {
+    "service_worker": "background.js"
   },
   "content_scripts": [
     {
