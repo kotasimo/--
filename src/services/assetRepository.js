@@ -33,6 +33,26 @@ export async function listAssets(ownerType, ownerId) {
   return data || [];
 }
 
+export async function listAssetsForOwners(ownerType, ownerIds) {
+  if (ownerIds.length === 0) return [];
+
+  if (!isSupabaseConfigured) {
+    const ownerIdSet = new Set(ownerIds);
+    return readLocalAssets().filter(
+      (item) => item.owner_type === ownerType && ownerIdSet.has(item.owner_id),
+    );
+  }
+
+  const { data, error } = await supabase
+    .from("problem_assets")
+    .select("*")
+    .eq("owner_type", ownerType)
+    .in("owner_id", ownerIds);
+
+  if (error) throw error;
+  return data || [];
+}
+
 export async function uploadAsset({ ownerType, ownerId, subject, assetType, file }) {
   const now = new Date().toISOString();
 

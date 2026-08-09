@@ -1,5 +1,6 @@
 import React, { useEffect, useState } from "react";
 import { problemImagePath, subjects } from "../data/examMeta.js";
+import { AssetPanel } from "./AssetPanel.jsx";
 import { ImagePanel } from "./ImagePanel.jsx";
 import { ConsultationPanel } from "./ConsultationPanel.jsx";
 import { pastExamOwnerId } from "../services/consultationRepository.js";
@@ -41,6 +42,9 @@ export function StudyView({
         <button className={mode === "logs" ? "active" : ""} type="button" onClick={() => onModeChange("logs")}>
           チャット
         </button>
+        <button className={mode === "assets" ? "active" : ""} type="button" onClick={() => onModeChange("assets")}>
+          画像
+        </button>
         <button className={mode === "memo" ? "active" : ""} type="button" onClick={() => onModeChange("memo")}>
           メモ
         </button>
@@ -81,6 +85,15 @@ export function StudyView({
           memo={memo}
           onMemoChange={onMemoChange}
           onMemoSave={onMemoSave}
+        />
+      )}
+
+      {mode === "assets" && (
+        <AssetPanel
+          ownerType="past_exam"
+          ownerId={pastExamOwnerId(subjectKey, year)}
+          subject={subjectKey}
+          title="追加画像"
         />
       )}
 
