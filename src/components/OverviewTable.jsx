@@ -1,7 +1,7 @@
-import React, { useEffect, useMemo, useRef, useState } from "react";
+import React, { useEffect, useRef, useState } from "react";
 import { problemImagePath, subjects, tableColumns } from "../data/examMeta.js";
-import { ChatMarkdown, parseChatContent, questionTitle } from "./ConsultationPanel.jsx";
-import { listConsultationLogs, pastExamOwnerId } from "../services/consultationRepository.js";
+import { getChatgptConversation } from "../services/chatgptConversationRepository.js";
+import { pastExamOwnerId } from "../services/consultationRepository.js";
 
 export function OverviewTable({
   currentSubject,
@@ -17,8 +17,6 @@ export function OverviewTable({
   const filledCount = years.filter((year) => hasTableEntry(currentSubject, year)).length;
   const [modal, setModal] = useState(null);
   const [memoDraft, setMemoDraft] = useState("");
-  const [chatLogs, setChatLogs] = useState([]);
-  const [chatState, setChatState] = useState("");
 
   useEffect(() => {
     if (modal?.type === "memo") {
@@ -26,30 +24,28 @@ export function OverviewTable({
     }
   }, [modal, currentSubject, getCell]);
 
-  useEffect(() => {
-    let cancelled = false;
-    if (modal?.type !== "chat") return undefined;
-
-    setChatState("読み込み中");
-    listConsultationLogs("past_exam", pastExamOwnerId(currentSubject, modal.year))
-      .then((items) => {
-        if (!cancelled) {
-          setChatLogs(items);
-          setChatState("");
-        }
-      })
-      .catch((error) => {
-        console.error(error);
-        if (!cancelled) setChatState("読み込み失敗");
-      });
-
-    return () => {
-      cancelled = true;
-    };
-  }, [modal, currentSubject]);
-
   function openModal(type, year) {
     setModal({ type, year });
+  }
+
+  async function openChatgpt(year) {
+    const chatWindow = window.open("about:blank", "_blank");
+    if (chatWindow) chatWindow.opener = null;
+    try {
+      const item = await getChatgptConversation("past_exam", pastExamOwnerId(currentSubject, year));
+      if (item?.chatgpt_url) {
+        if (chatWindow) {
+          chatWindow.location.href = item.chatgpt_url;
+        } else {
+          window.open(item.chatgpt_url, "_blank", "noopener,noreferrer");
+        }
+        return;
+      }
+    } catch (error) {
+      console.error(error);
+    }
+    if (chatWindow) chatWindow.close();
+    onOpenStudy(year, "logs");
   }
 
   function closeModal() {
@@ -106,7 +102,7 @@ export function OverviewTable({
                     </button>
                   </td>
                   <td>
-                    <button className="open-problem-button status-dot-button" type="button" title={`${year}年度のチャットを表示`} aria-label={`${year}年度のチャットを表示`} onClick={() => openModal("chat", year)}>
+                    <button className="open-problem-button status-dot-button" type="button" title={`${year}年度のChatGPTを開く`} aria-label={`${year}年度のChatGPTを開く`} onClick={() => openChatgpt(year)}>
                       ●
                     </button>
                   </td>
@@ -142,8 +138,6 @@ export function OverviewTable({
           subject={subject}
           currentSubject={currentSubject}
           memoDraft={memoDraft}
-          chatLogs={chatLogs}
-          chatState={chatState}
           onClose={closeModal}
           onMemoDraftChange={setMemoDraft}
           onMemoSave={saveMemo}
@@ -159,8 +153,6 @@ function OverviewModal({
   subject,
   currentSubject,
   memoDraft,
-  chatLogs,
-  chatState,
   onClose,
   onMemoDraftChange,
   onMemoSave,
@@ -188,7 +180,6 @@ function OverviewModal({
   const titleMap = {
     problem: "問題",
     answer: "解答",
-    chat: "チャット",
     memo: "メモ",
   };
   const title = `${modal.year}年度 ${subject.label} ${titleMap[modal.type]}`;
@@ -200,17 +191,16 @@ function OverviewModal({
           <h3>{title}</h3>
           <div className="overview-modal-actions">
             {modal.type !== "memo" && (
-              <button type="button" onClick={() => onOpenDetail(modal.year, modal.type === "chat" ? "logs" : modal.type)}>
+              <button type="button" onClick={() => onOpenDetail(modal.year, modal.type)}>
                 詳細で開く
               </button>
             )}
             <button type="button" onClick={onClose}>閉じる</button>
           </div>
         </div>
-        <div className={`overview-modal-body ${modal.type === "chat" ? "chat-modal-body" : ""}`}>
+        <div className="overview-modal-body">
           {modal.type === "problem" && <ProblemPreview currentSubject={currentSubject} subject={subject} year={modal.year} />}
           {modal.type === "answer" && <AnswerPreview currentSubject={currentSubject} subject={subject} year={modal.year} />}
-          {modal.type === "chat" && <ChatPreview logs={chatLogs} state={chatState} />}
           {modal.type === "memo" && (
             <div className="memo-modal-editor">
               {isMemoEditing ? (
@@ -268,65 +258,6 @@ function AnswerPreview({ currentSubject, subject, year }) {
           </ol>
         </details>
       )}
-    </div>
-  );
-}
-
-function ChatPreview({ logs, state }) {
-  const logViews = useMemo(
-    () =>
-      logs.map((log) => ({
-        ...log,
-        messages: parseChatContent(log.content)
-          .filter((message) => message.role !== "note")
-          .map((message, index) => ({
-            ...message,
-            anchorId: `modal-chat-${log.id}-${index}`,
-          })),
-      })),
-    [logs],
-  );
-  const questions = useMemo(
-    () =>
-      logViews.flatMap((log) =>
-        log.messages
-          .filter((message) => message.role === "user")
-          .map((message) => ({
-            id: message.anchorId,
-            title: questionTitle(message.text),
-          })),
-      ),
-    [logViews],
-  );
-
-  if (state) return <div className="empty-state">{state}</div>;
-  if (logs.length === 0) return <div className="empty-state">まだ相談ログはありません。</div>;
-
-  return (
-    <div className="modal-chat-layout">
-      <nav className="modal-question-index" aria-label="質問一覧">
-        {questions.map((question) => (
-          <a key={question.id} href={`#${question.id}`} title={question.title}>
-            {question.title}
-          </a>
-        ))}
-      </nav>
-      <div className="modal-chat-list">
-        {logViews.filter((log) => log.messages.length > 0).map((log) => (
-          <article key={log.id} className="consultation-card">
-            <div className="chat-log">
-              {log.messages.map((message) => (
-                <div id={message.anchorId} key={message.anchorId} className={`chat-message ${message.role}`}>
-                  <div className="chat-speaker">
-                    {message.role === "user" ? "User" : message.role === "assistant" ? "Codex" : "Memo"}
-                  </div>
-                  <ChatMarkdown text={message.text} />
-                </div>
-              ))}
-            </div>
-          </article>
-        ))}
-      </div>
     </div>
   );
 }

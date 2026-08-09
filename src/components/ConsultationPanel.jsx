@@ -1,114 +1,26 @@
-import React, { useEffect, useMemo, useState } from "react";
-import ReactMarkdown from "react-markdown";
-import rehypeKatex from "rehype-katex";
-import remarkGfm from "remark-gfm";
-import remarkMath from "remark-math";
-import "katex/dist/katex.min.css";
-import { addConsultationLog, listConsultationLogs } from "../services/consultationRepository.js";
-
-export function parseChatContent(content) {
-  try {
-    const parsed = JSON.parse(content);
-    if (Array.isArray(parsed)) {
-      const messages = parsed
-        .filter((message) => message && typeof message.text === "string")
-        .map((message) => ({
-          role: message.role === "user" || message.role === "assistant" ? message.role : "note",
-          text: message.text,
-        }));
-      if (messages.length > 0) return messages;
-    }
-  } catch {
-    // Older logs are plain text and are parsed below.
-  }
-
-  const lines = content.split(/\r?\n/);
-  const messages = [];
-  let current = null;
-
-  for (const line of lines) {
-    const match = line.match(/^(User|Codex|ユーザー|君|僕|AI|Assistant):\s*(.*)$/);
-    if (match) {
-      if (current) messages.push(current);
-      const speaker = match[1];
-      current = {
-        role: speaker === "User" || speaker === "ユーザー" || speaker === "君" ? "user" : "assistant",
-        text: match[2],
-      };
-    } else if (current) {
-      current.text += `${current.text ? "\n" : ""}${line}`;
-    }
-  }
-
-  if (current) messages.push(current);
-  return messages.length > 0 ? messages : [{ role: "note", text: content }];
-}
-
-function normalizeMath(text) {
-  return text
-    .replace(/\\\[((?:.|\n)*?)\\\]/g, (_match, math) => `$$\n${math.trim()}\n$$`)
-    .replace(/\\\((.*?)\\\)/g, (_match, math) => `$${math}$`);
-}
-
-export function ChatMarkdown({ text }) {
-  return (
-    <div className="chat-content">
-      <ReactMarkdown remarkPlugins={[remarkGfm, remarkMath]} rehypePlugins={[rehypeKatex]}>
-        {normalizeMath(text)}
-      </ReactMarkdown>
-    </div>
-  );
-}
-
-export function questionTitle(text) {
-  const firstLine = text.trim().split(/\r?\n/)[0] || "質問";
-  return firstLine.length > 42 ? `${firstLine.slice(0, 42)}...` : firstLine;
-}
+import React, { useEffect, useState } from "react";
+import {
+  deleteChatgptConversation,
+  getChatgptConversation,
+  saveChatgptConversation,
+} from "../services/chatgptConversationRepository.js";
 
 export function ConsultationPanel({ ownerType, ownerId, subject, defaultTitle }) {
-  const [logs, setLogs] = useState([]);
-  const [content, setContent] = useState("");
-  const [state, setState] = useState("");
-  const logViews = useMemo(
-    () =>
-      logs.map((log) => ({
-        ...log,
-        messages: parseChatContent(log.content)
-          .filter((message) => message.role !== "note")
-          .map((message, index) => ({
-            ...message,
-            anchorId: `chat-${log.id}-${index}`,
-          })),
-      })),
-    [logs],
-  );
-  const questions = useMemo(
-    () =>
-      logViews.flatMap((log) =>
-        log.messages
-          .filter((message) => message.role === "user")
-          .map((message) => ({
-            id: message.anchorId,
-            title: questionTitle(message.text),
-            date: log.created_at,
-          })),
-      ),
-    [logViews],
-  );
+  const [chatgptUrl, setChatgptUrl] = useState("");
+  const [chatgptState, setChatgptState] = useState("");
 
   useEffect(() => {
     let cancelled = false;
-    setState("読み込み中");
-    listConsultationLogs(ownerType, ownerId)
-      .then((items) => {
-        if (!cancelled) {
-          setLogs(items);
-          setState("");
-        }
+    setChatgptState("読み込み中");
+    getChatgptConversation(ownerType, ownerId)
+      .then((item) => {
+        if (cancelled) return;
+        setChatgptUrl(item?.chatgpt_url || "");
+        setChatgptState("");
       })
       .catch((error) => {
         console.error(error);
-        if (!cancelled) setState("読み込み失敗");
+        if (!cancelled) setChatgptState(error?.code === "PGRST205" ? "SQL更新が必要" : "読み込み失敗");
       });
 
     return () => {
@@ -116,83 +28,113 @@ export function ConsultationPanel({ ownerType, ownerId, subject, defaultTitle })
     };
   }, [ownerType, ownerId]);
 
-  useEffect(() => {
-    setContent("");
-  }, [defaultTitle, ownerId]);
-
-  async function handleAdd() {
-    if (!content.trim()) return;
-    setState("保存中");
+  function normalizedChatgptUrl() {
+    const value = chatgptUrl.trim();
+    if (!value) return "";
     try {
-      const saved = await addConsultationLog({
+      const url = new URL(value);
+      if (url.hostname !== "chatgpt.com" && url.hostname !== "chat.openai.com") return "";
+      return url.toString();
+    } catch {
+      return "";
+    }
+  }
+
+  async function handleSaveChatgptUrl() {
+    const url = normalizedChatgptUrl();
+    if (!url) {
+      setChatgptState("URLを確認");
+      return;
+    }
+
+    setChatgptState("保存中");
+    try {
+      const saved = await saveChatgptConversation({
         ownerType,
         ownerId,
         subject,
-        title: defaultTitle || "相談ログ",
-        content: content.trim(),
+        title: defaultTitle || "ChatGPT",
+        chatgptUrl: url,
       });
-      setLogs((current) => [...current, saved]);
-      setContent("");
-      setState("");
+      setChatgptUrl(saved.chatgpt_url);
+      setChatgptState("保存済み");
     } catch (error) {
       console.error(error);
-      setState("保存失敗");
+      setChatgptState("保存失敗");
     }
   }
+
+  async function handleDeleteChatgptUrl() {
+    setChatgptState("削除中");
+    try {
+      await deleteChatgptConversation(ownerType, ownerId);
+      setChatgptUrl("");
+      setChatgptState("");
+    } catch (error) {
+      console.error(error);
+      setChatgptState("削除失敗");
+    }
+  }
+
+  function handleAskInChatgpt() {
+    window.postMessage(
+      {
+        type: "NAGOYA_EXAM_CHATGPT_TARGET",
+        target: {
+          ownerType,
+          ownerId,
+          subject,
+          title: defaultTitle || "ChatGPT",
+        },
+      },
+      window.location.origin,
+    );
+    setChatgptState("ChatGPTを開きます");
+    window.open("https://chatgpt.com/", "_blank", "noopener,noreferrer");
+  }
+
+  const savedChatgptUrl = normalizedChatgptUrl();
 
   return (
     <section className="consultation-panel">
       <div className="consultation-header">
-        <h3>相談ログ</h3>
-        <span>{state || `${logs.length}件`}</span>
+        <h3>ChatGPT</h3>
+        <span>{chatgptState || (savedChatgptUrl ? "URL保存済み" : "未保存")}</span>
       </div>
 
-      <div className="consultation-body">
-        {questions.length > 0 && (
-          <nav className="question-index" aria-label="質問目次">
-            <div className="question-index-list">
-              {questions.map((question) => (
-                <a key={question.id} href={`#${question.id}`} title={question.title}>
-                  {question.title}
-                </a>
-              ))}
-            </div>
-          </nav>
-        )}
-
-        <div className="consultation-list">
-          {logs.length === 0 ? (
-            <p className="consultation-empty">まだ相談ログはありません。</p>
-          ) : (
-            logViews.filter((log) => log.messages.length > 0).map((log) => (
-              <article key={log.id} className="consultation-card">
-                <div className="chat-log">
-                  {log.messages.map((message) => (
-                    <div id={message.anchorId} key={message.anchorId} className={`chat-message ${message.role}`}>
-                      <div className="chat-speaker">
-                        {message.role === "user" ? "User" : message.role === "assistant" ? "Codex" : "Memo"}
-                      </div>
-                      <ChatMarkdown text={message.text} />
-                    </div>
-                  ))}
-                </div>
-              </article>
-            ))
-          )}
+      <section className="chatgpt-link-panel" aria-label="ChatGPTチャットURL">
+        <div className="chatgpt-link-copy">
+          <strong>{defaultTitle || "この問題"}</strong>
+          <span>この問題用のChatGPTチャットを開きます。</span>
         </div>
-
-      </div>
-
-      <div className="consultation-form is-hidden" aria-label="相談ログを追加">
-        <textarea
-          value={content}
-          onChange={(event) => setContent(event.target.value)}
-          placeholder="この問題について話したチャットをそのまま貼る"
-        />
-        <button type="button" onClick={handleAdd} disabled={!content.trim()}>
-          チャットを保存
-        </button>
-      </div>
+        <div className="chatgpt-primary-row">
+          <button type="button" onClick={handleAskInChatgpt}>
+            ChatGPTに質問
+          </button>
+          <a
+            className={`chatgpt-open-link ${savedChatgptUrl ? "" : "disabled"}`}
+            href={savedChatgptUrl || undefined}
+            target="_blank"
+            rel="noreferrer"
+            aria-disabled={!savedChatgptUrl}
+          >
+            保存済みを開く
+          </a>
+        </div>
+        <div className="chatgpt-link-row">
+          <input
+            value={chatgptUrl}
+            onChange={(event) => setChatgptUrl(event.target.value)}
+            placeholder="https://chatgpt.com/c/..."
+          />
+          <button type="button" onClick={handleSaveChatgptUrl}>
+            保存
+          </button>
+          <button type="button" onClick={handleDeleteChatgptUrl} disabled={!chatgptUrl.trim()}>
+            削除
+          </button>
+        </div>
+      </section>
     </section>
   );
 }

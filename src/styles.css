@@ -1146,6 +1146,95 @@ textarea:focus {
   font-size: 13px;
 }
 
+.chatgpt-link-panel {
+  display: grid;
+  gap: 10px;
+  border-bottom: 1px solid var(--line);
+  background: #ffffff;
+  padding: 14px;
+}
+
+.chatgpt-link-copy {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: 12px;
+}
+
+.chatgpt-link-copy strong {
+  font-size: 15px;
+}
+
+.chatgpt-link-copy span {
+  color: var(--muted);
+  font-size: 13px;
+}
+
+.chatgpt-link-row {
+  display: grid;
+  grid-template-columns: minmax(220px, 1fr) auto auto;
+  gap: 8px;
+}
+
+.chatgpt-primary-row {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+}
+
+.chatgpt-primary-row button {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-height: 40px;
+  border: 1px solid #126e63;
+  border-radius: 6px;
+  padding: 0 14px;
+  color: #ffffff;
+  background: #126e63;
+  font: inherit;
+  font-weight: 700;
+  cursor: pointer;
+}
+
+.chatgpt-link-row input {
+  min-width: 0;
+  border: 1px solid var(--line);
+  border-radius: 6px;
+  padding: 9px 10px;
+  font: inherit;
+}
+
+.chatgpt-link-row button,
+.chatgpt-open-link {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-height: 38px;
+  border: 1px solid var(--line);
+  border-radius: 6px;
+  padding: 0 12px;
+  color: var(--ink);
+  background: #f7fafb;
+  font: inherit;
+  font-weight: 700;
+  text-decoration: none;
+  cursor: pointer;
+}
+
+.chatgpt-link-row button:first-of-type {
+  color: #ffffff;
+  border-color: #126e63;
+  background: #126e63;
+}
+
+.chatgpt-link-row button:disabled,
+.chatgpt-open-link.disabled {
+  opacity: 0.45;
+  cursor: default;
+  pointer-events: none;
+}
+
 .consultation-body {
   display: grid;
   grid-template-columns: 170px minmax(640px, 880px) minmax(220px, 1fr);
@@ -1469,6 +1558,10 @@ textarea:focus {
 }
 
 @media (max-width: 1200px) {
+  .chatgpt-link-row {
+    grid-template-columns: minmax(0, 1fr) auto auto auto;
+  }
+
   .consultation-body {
     grid-template-columns: 150px minmax(0, 1fr);
     gap: 34px;
@@ -1492,6 +1585,19 @@ textarea:focus {
 }
 
 @media (max-width: 800px) {
+  .chatgpt-link-copy {
+    display: grid;
+    justify-content: stretch;
+  }
+
+  .chatgpt-link-row {
+    grid-template-columns: 1fr 1fr 1fr;
+  }
+
+  .chatgpt-link-row input {
+    grid-column: 1 / -1;
+  }
+
   .sidebar {
     position: static;
     width: auto;

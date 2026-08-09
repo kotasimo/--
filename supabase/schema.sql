@@ -54,6 +54,16 @@ create table if not exists consultation_logs (
   created_at timestamp with time zone default now()
 );
 
+create table if not exists chatgpt_conversations (
+  owner_type text not null,
+  owner_id text not null,
+  subject text not null,
+  title text default '',
+  chatgpt_url text not null,
+  updated_at timestamp with time zone default now(),
+  primary key (owner_type, owner_id)
+);
+
 create or replace function set_updated_at()
 returns trigger as $$
 begin
@@ -64,6 +74,7 @@ $$ language plpgsql;
 
 drop trigger if exists set_study_records_updated_at on study_records;
 drop trigger if exists set_custom_problems_updated_at on custom_problems;
+drop trigger if exists set_chatgpt_conversations_updated_at on chatgpt_conversations;
 
 create trigger set_study_records_updated_at
 before update on study_records
@@ -75,17 +86,24 @@ before update on custom_problems
 for each row
 execute function set_updated_at();
 
+create trigger set_chatgpt_conversations_updated_at
+before update on chatgpt_conversations
+for each row
+execute function set_updated_at();
+
 alter table study_records enable row level security;
 alter table submission_images enable row level security;
 alter table custom_problems enable row level security;
 alter table problem_assets enable row level security;
 alter table consultation_logs enable row level security;
+alter table chatgpt_conversations enable row level security;
 
 drop policy if exists "Allow public access study records" on study_records;
 drop policy if exists "Allow public access submission images" on submission_images;
 drop policy if exists "Allow public access custom problems" on custom_problems;
 drop policy if exists "Allow public access problem assets" on problem_assets;
 drop policy if exists "Allow public access consultation logs" on consultation_logs;
+drop policy if exists "Allow public access chatgpt conversations" on chatgpt_conversations;
 
 create policy "Allow public access study records"
 on study_records
@@ -117,6 +135,13 @@ with check (true);
 
 create policy "Allow public access consultation logs"
 on consultation_logs
+for all
+to anon
+using (true)
+with check (true);
+
+create policy "Allow public access chatgpt conversations"
+on chatgpt_conversations
 for all
 to anon
 using (true)

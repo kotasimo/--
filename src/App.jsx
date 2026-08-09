@@ -13,6 +13,7 @@ import {
   saveCustomProblemFields,
 } from "./services/customProblemRepository.js";
 import { deleteAssetsForOwner } from "./services/assetRepository.js";
+import { deleteChatgptConversation } from "./services/chatgptConversationRepository.js";
 import { deleteConsultationLogsForOwner } from "./services/consultationRepository.js";
 import { examCategories, getYearsForSubject, tableColumns } from "./data/examMeta.js";
 import {
@@ -345,6 +346,7 @@ export function App() {
 
     try {
       await deleteAssetsForOwner("custom_problem", problem.id);
+      await deleteChatgptConversation("custom_problem", problem.id);
       await deleteConsultationLogsForOwner("custom_problem", problem.id);
       if (!unsavedCustomIds.has(problem.id)) {
         await deleteCustomProblem(problem.id);

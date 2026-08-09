@@ -1,0 +1,31 @@
+{
+  "manifest_version": 3,
+  "name": "院試チャット保存",
+  "version": "0.1.0",
+  "description": "ChatGPTの会話を院試メモアプリの相談ログへ保存します。",
+  "permissions": ["activeTab", "storage", "scripting"],
+  "host_permissions": [
+    "https://chatgpt.com/*",
+    "https://chat.openai.com/*",
+    "https://*.supabase.co/*",
+    "http://localhost:*/*",
+    "http://127.0.0.1:*/*",
+    "https://*.vercel.app/*"
+  ],
+  "action": {
+    "default_popup": "popup.html",
+    "default_title": "院試チャットに保存"
+  },
+  "content_scripts": [
+    {
+      "matches": ["https://chatgpt.com/*", "https://chat.openai.com/*"],
+      "js": ["content.js"],
+      "run_at": "document_idle"
+    },
+    {
+      "matches": ["http://localhost:*/*", "http://127.0.0.1:*/*", "https://*.vercel.app/*"],
+      "js": ["site-bridge.js"],
+      "run_at": "document_idle"
+    }
+  ]
+}
