@@ -94,6 +94,7 @@ export function StudyView({
           ownerId={pastExamOwnerId(subjectKey, year)}
           subject={subjectKey}
           title="追加画像"
+          displayMode="large"
         />
       )}
 

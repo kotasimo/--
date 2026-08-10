@@ -1093,6 +1093,59 @@ textarea:focus {
   background: #ffffff;
 }
 
+.submission-panel.is-large-viewer {
+  display: grid;
+  grid-template-rows: auto auto minmax(0, 1fr);
+  min-height: 0;
+  margin-top: 0;
+  border: 0;
+  background: transparent;
+  padding-bottom: 0;
+}
+
+.submission-panel.is-large-viewer .submission-header {
+  display: none;
+}
+
+.submission-panel.is-large-viewer .asset-controls {
+  padding: 0 0 12px;
+}
+
+.submission-panel.is-large-viewer .submission-grid {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 22px;
+  min-height: 0;
+  max-height: calc(90vh - 220px);
+  overflow-y: auto;
+  overscroll-behavior: contain;
+  scroll-snap-type: y proximity;
+  padding: 0 8px 0 0;
+}
+
+.submission-panel.is-large-viewer .submission-grid a {
+  width: min(100%, 1040px);
+  border: 0;
+  border-radius: 0;
+  overflow: visible;
+  background: transparent;
+  scroll-snap-align: start;
+  display: flex;
+  justify-content: center;
+}
+
+.submission-panel.is-large-viewer .submission-grid img {
+  width: auto;
+  max-width: 100%;
+  max-height: min(68vh, 720px);
+  height: auto;
+  object-fit: contain;
+  border: 1px solid #c7d1d7;
+  border-radius: 6px;
+  box-shadow: 0 8px 28px rgba(23, 32, 38, 0.14);
+}
+
 .submission-panel.is-readonly {
   margin-top: 0;
   background: #dfe7eb;
@@ -1802,6 +1855,24 @@ textarea:focus {
     width: calc(100vw - 20px);
     height: auto;
     object-fit: contain;
+  }
+
+  .submission-panel.is-large-viewer .asset-controls {
+    padding: 0 0 10px;
+  }
+
+  .submission-panel.is-large-viewer .submission-grid {
+    gap: 14px;
+    max-height: calc(100vh - 190px);
+    padding: 0;
+  }
+
+  .submission-panel.is-large-viewer .submission-grid a {
+    width: 100%;
+  }
+
+  .submission-panel.is-large-viewer .submission-grid img {
+    max-height: min(66vh, 620px);
   }
 
   .study-memo-panel {

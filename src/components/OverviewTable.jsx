@@ -253,6 +253,7 @@ function OverviewModal({
               ownerId={pastExamOwnerId(currentSubject, modal.year)}
               subject={currentSubject}
               title="追加画像"
+              displayMode="large"
               onAssetSaved={() => onAssetSaved(pastExamOwnerId(currentSubject, modal.year))}
             />
           )}

@@ -9,6 +9,7 @@ export function AssetPanel({
   title = "写真",
   fixedAssetType = "",
   editable = true,
+  displayMode = "grid",
   onAssetSaved,
 }) {
   const [assets, setAssets] = useState([]);
@@ -55,7 +56,7 @@ export function AssetPanel({
   }
 
   return (
-    <section className={`submission-panel ${editable ? "is-editable" : "is-readonly"}`}>
+    <section className={`submission-panel ${editable ? "is-editable" : "is-readonly"} ${displayMode === "large" ? "is-large-viewer" : ""}`}>
       <div className="submission-header">
         <h3>{title}</h3>
         {!editable && visibleAssets[0] ? (
