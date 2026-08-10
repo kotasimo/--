@@ -416,6 +416,7 @@ export function App() {
           selectedCustomId={selectedCustomProblem?.id || ""}
           customProblems={customProblems}
           hasMemo={helpers.hasMemo}
+          hasRecord={helpers.hasTableEntry}
           onCategoryChange={changeCategory}
           onAppModeChange={changeAppMode}
           onSubjectChange={changeSubject}

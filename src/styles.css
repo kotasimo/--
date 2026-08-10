@@ -242,11 +242,37 @@ a {
   background: var(--accent-soft);
 }
 
+.year-button.has-record {
+  border-color: #5b9cff;
+  background: #cfe3ff;
+  color: #0b4a8b;
+  font-weight: 700;
+}
+
+.year-button.has-record::after {
+  content: "記録";
+  border-radius: 999px;
+  background: #2f80ed;
+  color: #ffffff;
+  padding: 2px 8px;
+  font-size: 12px;
+  font-weight: 800;
+}
+
+.year-button.has-record.active {
+  border-color: #2f80ed;
+  background: #bcd9ff;
+  box-shadow: inset 0 0 0 1px rgba(47, 128, 237, 0.28);
+}
+
 .year-button.has-note::after {
   content: "メモ";
-  color: var(--accent);
+  border-radius: 999px;
+  background: #2f80ed;
+  color: #ffffff;
+  padding: 2px 8px;
   font-size: 12px;
-  font-weight: 700;
+  font-weight: 800;
 }
 
 .create-button {

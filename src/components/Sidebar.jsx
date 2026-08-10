@@ -12,6 +12,7 @@ export function Sidebar({
   selectedCustomId,
   customProblems,
   hasMemo,
+  hasRecord,
   onCategoryChange,
   onAppModeChange,
   onSubjectChange,
@@ -84,6 +85,7 @@ export function Sidebar({
               className={[
                 "year-button",
                 currentView === "study" && currentYear === year ? "active" : "",
+                hasRecord(currentSubject, year) ? "has-record" : "",
                 hasMemo(currentSubject, year) ? "has-note" : "",
               ].join(" ")}
               type="button"
