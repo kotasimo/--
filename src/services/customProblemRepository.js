@@ -1,4 +1,5 @@
 import { isSupabaseConfigured, supabase } from "./supabaseClient.js";
+import { seededCustomProblems } from "../data/seededCustomProblems.js";
 
 const LOCAL_KEY = "nagoya-exam-custom-problems";
 
@@ -14,11 +15,21 @@ function writeLocalProblems(items) {
   localStorage.setItem(LOCAL_KEY, JSON.stringify(items));
 }
 
+function mergeSeededProblems(subject, items) {
+  const itemIds = new Set(items.map((item) => item.id));
+  const seeds = seededCustomProblems.filter((item) => item.subject === subject && !itemIds.has(item.id));
+
+  return [...items, ...seeds].sort((a, b) =>
+    String(b.updated_at || "").localeCompare(String(a.updated_at || "")),
+  );
+}
+
 export async function listCustomProblems(subject) {
   if (!isSupabaseConfigured) {
-    return readLocalProblems()
+    const items = readLocalProblems()
       .filter((item) => item.subject === subject)
       .sort((a, b) => String(b.updated_at || "").localeCompare(String(a.updated_at || "")));
+    return mergeSeededProblems(subject, items);
   }
 
   const { data, error } = await supabase
@@ -28,7 +39,7 @@ export async function listCustomProblems(subject) {
     .order("updated_at", { ascending: false });
 
   if (error) throw error;
-  return data || [];
+  return mergeSeededProblems(subject, data || []);
 }
 
 export function makeCustomProblemDraft(subject) {

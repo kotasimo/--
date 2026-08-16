@@ -6,6 +6,7 @@ import { MemoPanel } from "./StudyView.jsx";
 
 export function CustomProblemView({ problem, mode, saveState, isUnsaved, subjectKeys, onSave, onDelete, onModeChange }) {
   const [draft, setDraft] = useState(problem);
+  const isReadonly = Boolean(problem.readonly);
 
   useEffect(() => {
     setDraft(problem);
@@ -66,12 +67,16 @@ export function CustomProblemView({ problem, mode, saveState, isUnsaved, subject
           <h2>{problem.title || "新しい問題"}</h2>
         </div>
         <div className="detail-header-actions">
-          <button className="secondary-action-button" type="button" onClick={() => onModeChange("edit")}>
-            編集
-          </button>
-          <button className="danger-action-button" type="button" onClick={() => onDelete(problem)}>
-            削除
-          </button>
+          {!isReadonly && (
+            <>
+              <button className="secondary-action-button" type="button" onClick={() => onModeChange("edit")}>
+                編集
+              </button>
+              <button className="danger-action-button" type="button" onClick={() => onDelete(problem)}>
+                削除
+              </button>
+            </>
+          )}
           <div className={`status ${saveState === "保存中" ? "saving" : ""} ${saveState !== "保存済み" ? "needs-attention" : ""}`}>{saveState}</div>
         </div>
       </header>

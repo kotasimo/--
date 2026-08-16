@@ -65,6 +65,7 @@ export function CustomProblemTable({ currentSubject, problems, saveLabel, onCrea
                       className="table-input"
                       type="text"
                       value={problem.short_memo || ""}
+                      disabled={Boolean(problem.readonly)}
                       onChange={(event) => onCellChange(problem.id, "short_memo", event.target.value)}
                     />
                   </td>

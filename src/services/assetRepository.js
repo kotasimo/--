@@ -1,4 +1,5 @@
 import { isSupabaseConfigured, supabase } from "./supabaseClient.js";
+import { seededAssets } from "../data/seededCustomProblems.js";
 
 const BUCKET = "study-assets";
 const LOCAL_KEY = "nagoya-exam-problem-assets";
@@ -15,11 +16,23 @@ function writeLocalAssets(items) {
   localStorage.setItem(LOCAL_KEY, JSON.stringify(items));
 }
 
+function mergeSeededAssets(ownerType, ownerId, items) {
+  const itemIds = new Set(items.map((item) => item.id));
+  const seeds = seededAssets.filter(
+    (item) => item.owner_type === ownerType && item.owner_id === ownerId && !itemIds.has(item.id),
+  );
+
+  return [...items, ...seeds].sort((a, b) =>
+    String(b.created_at || "").localeCompare(String(a.created_at || "")),
+  );
+}
+
 export async function listAssets(ownerType, ownerId) {
   if (!isSupabaseConfigured) {
-    return readLocalAssets()
+    const items = readLocalAssets()
       .filter((item) => item.owner_type === ownerType && item.owner_id === ownerId)
       .sort((a, b) => String(b.created_at || "").localeCompare(String(a.created_at || "")));
+    return mergeSeededAssets(ownerType, ownerId, items);
   }
 
   const { data, error } = await supabase
@@ -30,7 +43,7 @@ export async function listAssets(ownerType, ownerId) {
     .order("created_at", { ascending: false });
 
   if (error) throw error;
-  return data || [];
+  return mergeSeededAssets(ownerType, ownerId, data || []);
 }
 
 export async function uploadAsset({ ownerType, ownerId, subject, assetType, file }) {
