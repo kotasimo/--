@@ -1,6 +1,11 @@
 import React, { useEffect, useRef, useState } from "react";
 import { problemImagePath, subjects, tableColumns } from "../data/examMeta.js";
-import { getChatgptConversation } from "../services/chatgptConversationRepository.js";
+import { AssetPanel } from "./AssetPanel.jsx";
+import {
+  getChatgptConversation,
+  listChatgptConversations,
+} from "../services/chatgptConversationRepository.js";
+import { listAssetsForOwners } from "../services/assetRepository.js";
 import { pastExamOwnerId } from "../services/consultationRepository.js";
 
 export function OverviewTable({
@@ -17,12 +22,41 @@ export function OverviewTable({
   const filledCount = years.filter((year) => hasTableEntry(currentSubject, year)).length;
   const [modal, setModal] = useState(null);
   const [memoDraft, setMemoDraft] = useState("");
+  const [chatgptOwnerIds, setChatgptOwnerIds] = useState(() => new Set());
+  const [assetOwnerIds, setAssetOwnerIds] = useState(() => new Set());
 
   useEffect(() => {
     if (modal?.type === "memo") {
       setMemoDraft(getCell(currentSubject, modal.year, "memo"));
     }
   }, [modal, currentSubject, getCell]);
+
+  useEffect(() => {
+    let cancelled = false;
+    const ownerIds = years.map((year) => pastExamOwnerId(currentSubject, year));
+
+    listChatgptConversations("past_exam", ownerIds)
+      .then((items) => {
+        if (!cancelled) setChatgptOwnerIds(new Set(items.map((item) => item.owner_id)));
+      })
+      .catch((error) => {
+        console.error(error);
+        if (!cancelled) setChatgptOwnerIds(new Set());
+      });
+
+    listAssetsForOwners("past_exam", ownerIds)
+      .then((items) => {
+        if (!cancelled) setAssetOwnerIds(new Set(items.map((item) => item.owner_id)));
+      })
+      .catch((error) => {
+        console.error(error);
+        if (!cancelled) setAssetOwnerIds(new Set());
+      });
+
+    return () => {
+      cancelled = true;
+    };
+  }, [currentSubject, years]);
 
   function openModal(type, year) {
     setModal({ type, year });
@@ -57,6 +91,10 @@ export function OverviewTable({
     onCellChange(currentSubject, modal.year, "memo", memoDraft);
   }
 
+  function markAssetsSaved(ownerId) {
+    setAssetOwnerIds((current) => new Set(current).add(ownerId));
+  }
+
   return (
     <section className="home-view">
       <header className="topbar">
@@ -82,7 +120,7 @@ export function OverviewTable({
           <table className="overview-table">
             <thead>
               <tr>
-                {["年度", "問題", "解答", "チャット", ...tableColumns.map((column) => column.label), "メモ"].map((label) => (
+                {["年度", "問題", "解答", "チャット", "画像", ...tableColumns.map((column) => column.label), "メモ"].map((label) => (
                   <th key={label}>{label}</th>
                 ))}
               </tr>
@@ -102,8 +140,13 @@ export function OverviewTable({
                     </button>
                   </td>
                   <td>
-                    <button className="open-problem-button status-dot-button" type="button" title={`${year}年度のChatGPTを開く`} aria-label={`${year}年度のChatGPTを開く`} onClick={() => openChatgpt(year)}>
-                      ●
+                    <button className={`open-problem-button status-dot-button ${chatgptOwnerIds.has(pastExamOwnerId(currentSubject, year)) ? "has-note" : ""}`} type="button" title={`${year}年度のChatGPTを開く`} aria-label={`${year}年度のChatGPTを開く`} onClick={() => openChatgpt(year)}>
+                      {chatgptOwnerIds.has(pastExamOwnerId(currentSubject, year)) ? "●" : "-"}
+                    </button>
+                  </td>
+                  <td>
+                    <button className={`open-problem-button status-dot-button ${assetOwnerIds.has(pastExamOwnerId(currentSubject, year)) ? "has-note" : ""}`} type="button" title={`${year}年度の画像を表示`} aria-label={`${year}年度の画像を表示`} onClick={() => openModal("assets", year)}>
+                      {assetOwnerIds.has(pastExamOwnerId(currentSubject, year)) ? "●" : "-"}
                     </button>
                   </td>
                   {tableColumns.map((column) => (
@@ -141,6 +184,7 @@ export function OverviewTable({
           onClose={closeModal}
           onMemoDraftChange={setMemoDraft}
           onMemoSave={saveMemo}
+          onAssetSaved={markAssetsSaved}
           onOpenDetail={onOpenStudy}
         />
       )}
@@ -156,6 +200,7 @@ function OverviewModal({
   onClose,
   onMemoDraftChange,
   onMemoSave,
+  onAssetSaved,
   onOpenDetail,
 }) {
   const memoTextareaRef = useRef(null);
@@ -180,6 +225,7 @@ function OverviewModal({
   const titleMap = {
     problem: "問題",
     answer: "解答",
+    assets: "画像",
     memo: "メモ",
   };
   const title = `${modal.year}年度 ${subject.label} ${titleMap[modal.type]}`;
@@ -201,6 +247,16 @@ function OverviewModal({
         <div className="overview-modal-body">
           {modal.type === "problem" && <ProblemPreview currentSubject={currentSubject} subject={subject} year={modal.year} />}
           {modal.type === "answer" && <AnswerPreview currentSubject={currentSubject} subject={subject} year={modal.year} />}
+          {modal.type === "assets" && (
+            <AssetPanel
+              ownerType="past_exam"
+              ownerId={pastExamOwnerId(currentSubject, modal.year)}
+              subject={currentSubject}
+              title="追加画像"
+              displayMode="large"
+              onAssetSaved={() => onAssetSaved(pastExamOwnerId(currentSubject, modal.year))}
+            />
+          )}
           {modal.type === "memo" && (
             <div className="memo-modal-editor">
               {isMemoEditing ? (

@@ -32,6 +32,25 @@ export async function getChatgptConversation(ownerType, ownerId) {
   return data;
 }
 
+export async function listChatgptConversations(ownerType, ownerIds) {
+  if (ownerIds.length === 0) return [];
+
+  if (!isSupabaseConfigured) {
+    const ownerIdSet = new Set(ownerIds);
+    return readLocalItems().filter(
+      (item) => item.owner_type === ownerType && ownerIdSet.has(item.owner_id),
+    );
+  }
+
+  const { data, error } = await supabase
+    .from("chatgpt_conversations")
+    .select("*")
+    .eq("owner_type", ownerType)
+    .in("owner_id", ownerIds);
+  if (error) throw error;
+  return data || [];
+}
+
 export async function saveChatgptConversation({ ownerType, ownerId, subject, title, chatgptUrl }) {
   const item = {
     owner_type: ownerType,
