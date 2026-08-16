@@ -4,7 +4,18 @@ import { AssetPanel } from "./AssetPanel.jsx";
 import { ConsultationPanel } from "./ConsultationPanel.jsx";
 import { MemoPanel } from "./StudyView.jsx";
 
-export function CustomProblemView({ problem, mode, saveState, isUnsaved, subjectKeys, onSave, onDelete, onModeChange }) {
+export function CustomProblemView({
+  problem,
+  mode,
+  saveState,
+  isUnsaved,
+  subjectKeys,
+  zoom,
+  onZoomChange,
+  onSave,
+  onDelete,
+  onModeChange,
+}) {
   const [draft, setDraft] = useState(problem);
   const isReadonly = Boolean(problem.readonly);
 
@@ -91,16 +102,48 @@ export function CustomProblemView({ problem, mode, saveState, isUnsaved, subject
         <button className={mode === "logs" ? "active" : ""} type="button" onClick={() => onModeChange("logs")}>
           チャット
         </button>
+        <button className={mode === "assets" ? "active" : ""} type="button" onClick={() => onModeChange("assets")}>
+          画像
+        </button>
         <button className={mode === "memo" ? "active" : ""} type="button" onClick={() => onModeChange("memo")}>
           メモ
         </button>
+        <label className="zoom-control" htmlFor="customImageZoom">
+          <span>画像サイズ</span>
+          <input
+            id="customImageZoom"
+            type="range"
+            min="60"
+            max="140"
+            step="5"
+            value={zoom}
+            onChange={(event) => onZoomChange(Number(event.target.value))}
+          />
+          <output htmlFor="customImageZoom">{zoom}%</output>
+        </label>
       </div>
 
       {mode === "problem" && (
-        <AssetPanel ownerType="custom_problem" ownerId={problem.id} subject={problem.subject} title="問題画像" fixedAssetType="問題" editable={false} />
+        <AssetPanel
+          ownerType="custom_problem"
+          ownerId={problem.id}
+          subject={problem.subject}
+          title="問題画像"
+          fixedAssetType="問題"
+          editable={false}
+          displayMode="large"
+        />
       )}
       {mode === "answer" && (
-        <AssetPanel ownerType="custom_problem" ownerId={problem.id} subject={problem.subject} title="解答画像" fixedAssetType="解答" editable={false} />
+        <AssetPanel
+          ownerType="custom_problem"
+          ownerId={problem.id}
+          subject={problem.subject}
+          title="解答画像"
+          fixedAssetType="解答"
+          editable={false}
+          displayMode="large"
+        />
       )}
       {mode === "logs" && (
         <ConsultationPanel
@@ -108,6 +151,15 @@ export function CustomProblemView({ problem, mode, saveState, isUnsaved, subject
           ownerId={problem.id}
           subject={problem.subject}
           defaultTitle={problem.title || "追加問題"}
+        />
+      )}
+      {mode === "assets" && (
+        <AssetPanel
+          ownerType="custom_problem"
+          ownerId={problem.id}
+          subject={problem.subject}
+          title="追加画像"
+          displayMode="large"
         />
       )}
       {mode === "memo" && <MemoPanel memo={problem.memo || ""} onMemoSave={(value) => onSave({ ...problem, memo: value })} />}

@@ -1120,17 +1120,16 @@ textarea:focus {
 }
 
 .submission-panel.is-large-viewer {
-  display: grid;
-  grid-template-rows: auto auto minmax(0, 1fr);
-  min-height: 0;
   margin-top: 0;
-  border: 0;
-  background: transparent;
+  border: 1px solid var(--line);
+  border-radius: 8px;
+  background: #dfe7eb;
   padding-bottom: 0;
 }
 
 .submission-panel.is-large-viewer .submission-header {
-  display: none;
+  display: flex;
+  background: var(--panel);
 }
 
 .submission-panel.is-large-viewer .asset-controls {
@@ -1138,37 +1137,25 @@ textarea:focus {
 }
 
 .submission-panel.is-large-viewer .submission-grid {
-  display: flex;
-  flex-direction: column;
-  align-items: center;
+  display: grid;
+  grid-template-columns: 1fr;
   gap: 22px;
-  min-height: 0;
-  max-height: calc(90vh - 220px);
-  overflow-y: auto;
-  overscroll-behavior: contain;
-  scroll-snap-type: y proximity;
-  padding: 0 8px 0 0;
+  padding: 18px;
 }
 
 .submission-panel.is-large-viewer .submission-grid a {
-  width: min(100%, 1040px);
   border: 0;
   border-radius: 0;
   overflow: visible;
   background: transparent;
-  scroll-snap-align: start;
-  display: flex;
-  justify-content: center;
 }
 
 .submission-panel.is-large-viewer .submission-grid img {
-  width: auto;
-  max-width: 100%;
-  max-height: min(68vh, 720px);
+  width: min(var(--image-width), 100%);
   height: auto;
+  margin: 0 auto;
   object-fit: contain;
   border: 1px solid #c7d1d7;
-  border-radius: 6px;
   box-shadow: 0 8px 28px rgba(23, 32, 38, 0.14);
 }
 
@@ -1888,8 +1875,7 @@ textarea:focus {
   }
 
   .submission-panel.is-large-viewer .submission-grid {
-    gap: 14px;
-    max-height: calc(100vh - 190px);
+    gap: 10px;
     padding: 0;
   }
 
@@ -1898,7 +1884,8 @@ textarea:focus {
   }
 
   .submission-panel.is-large-viewer .submission-grid img {
-    max-height: min(66vh, 620px);
+    width: calc(100vw - 20px);
+    max-height: none;
   }
 
   .study-memo-panel {

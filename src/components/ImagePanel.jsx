@@ -1,6 +1,6 @@
 import React, { useState } from "react";
 
-async function copyImageToClipboard(src) {
+export async function copyImageToClipboard(src) {
   if (!navigator.clipboard?.write || typeof ClipboardItem === "undefined") {
     throw new Error("このブラウザでは画像コピーに対応していません。");
   }

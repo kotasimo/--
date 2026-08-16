@@ -479,6 +479,8 @@ export function App() {
             saveState={customLoadState || saveState}
             isUnsaved={unsavedCustomIds.has(selectedCustomProblem.id)}
             subjectKeys={subjectKeys}
+            zoom={zoom}
+            onZoomChange={setZoom}
             onFieldChange={(field, value) => saveCustomField(selectedCustomProblem.id, field, value)}
             onSave={saveCustomProblem}
             onDelete={removeCustomProblem}

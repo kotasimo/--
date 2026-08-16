@@ -1,6 +1,7 @@
 import React, { useEffect, useState } from "react";
 import { listAssets, uploadAsset } from "../services/assetRepository.js";
 import { isSupabaseConfigured } from "../services/supabaseClient.js";
+import { copyImageToClipboard } from "./ImagePanel.jsx";
 
 export function AssetPanel({
   ownerType,
@@ -14,8 +15,10 @@ export function AssetPanel({
 }) {
   const [assets, setAssets] = useState([]);
   const [state, setState] = useState("");
+  const [copyState, setCopyState] = useState("");
   const assetType = fixedAssetType || "画像";
   const visibleAssets = fixedAssetType ? assets.filter((asset) => asset.asset_type === fixedAssetType) : assets;
+  const firstAsset = visibleAssets[0];
 
   useEffect(() => {
     let cancelled = false;
@@ -55,12 +58,33 @@ export function AssetPanel({
     }
   }
 
+  async function handleAiPaste() {
+    if (!firstAsset) return;
+    setCopyState("コピー中");
+    try {
+      await copyImageToClipboard(firstAsset.image_url);
+      setCopyState("コピー済み");
+      window.open("https://chatgpt.com/", "_blank", "noopener,noreferrer");
+    } catch (error) {
+      console.error(error);
+      setCopyState("コピー失敗");
+      window.open(firstAsset.image_url, "_blank", "noopener,noreferrer");
+    }
+  }
+
   return (
     <section className={`submission-panel ${editable ? "is-editable" : "is-readonly"} ${displayMode === "large" ? "is-large-viewer" : ""}`}>
       <div className="submission-header">
         <h3>{title}</h3>
-        {!editable && visibleAssets[0] ? (
-          <a href={visibleAssets[0].image_url} target="_blank" rel="noreferrer">画像だけ開く</a>
+        {!editable && firstAsset ? (
+          <div className="problem-actions">
+            {fixedAssetType === "問題" && (
+              <button type="button" onClick={handleAiPaste}>
+                {copyState || "AIに貼る"}
+              </button>
+            )}
+            <a href={firstAsset.image_url} target="_blank" rel="noreferrer">画像だけ開く</a>
+          </div>
         ) : (
           <span>{state || `${visibleAssets.length}枚`}</span>
         )}

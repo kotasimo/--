@@ -35,6 +35,7 @@ export function CustomProblemTable({ currentSubject, problems, saveLabel, onCrea
                 <th>問題</th>
                 <th>解答</th>
                 <th>チャット</th>
+                <th>画像</th>
                 <th>記録</th>
                 <th>メモ</th>
               </tr>
@@ -57,6 +58,11 @@ export function CustomProblemTable({ currentSubject, problems, saveLabel, onCrea
                   </td>
                   <td>
                     <button className="open-problem-button status-dot-button" type="button" title={`${problem.title || "追加問題"}のチャットを表示`} aria-label={`${problem.title || "追加問題"}のチャットを表示`} onClick={() => onOpen(problem.id, "logs")}>
+                      ●
+                    </button>
+                  </td>
+                  <td>
+                    <button className="open-problem-button status-dot-button" type="button" title={`${problem.title || "追加問題"}の画像を表示`} aria-label={`${problem.title || "追加問題"}の画像を表示`} onClick={() => onOpen(problem.id, "assets")}>
                       ●
                     </button>
                   </td>
@@ -84,7 +90,7 @@ export function CustomProblemTable({ currentSubject, problems, saveLabel, onCrea
               ))}
               {problems.length === 0 && (
                 <tr>
-                  <td className="empty-row" colSpan="6">
+                  <td className="empty-row" colSpan="7">
                     まだ追加問題がありません。
                   </td>
                 </tr>
